@@ -74,22 +74,11 @@ def MPTS(m):
     #                     [2]]])
     # will become array([0, 1, 2])
 
-    if denominator[np.where(denominator != 0)[0]].size != 0:
-        # look for indices for where denominator is not zero
-        # and check that there actually ARE any non-zeros
+    if np.count_nonzero(denominator) != 0:
+        # check that I don't have an all-zero denominator
         s = np.sum(np.divide(numerator[nonzeros], denominator[nonzeros]))
         # divide appropriate pairs and add them all up
-        return float(s)
+        df = np.count_nonzero(denominator)
+        return float(s), int(df)
     else:
         return np.nan
-
-
-def MPTS_df(m):
-    '''
-    degrees of freedom for the MaxSym test
-    '''
-    denominator = m+m.T
-    off_diag_indices=np.triu_indices(len(denominator),1)
-    denominator = np.squeeze(np.asarray(denominator[off_diag_indices]))
-    i = np.count_nonzero(denominator)
-    return int(i)
