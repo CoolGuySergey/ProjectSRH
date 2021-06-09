@@ -54,16 +54,3 @@ def Stuarts(m):
         Vi=np.linalg.inv(V)
         s = (ut.dot(Vi)).dot(u)[0][0]
         return float(s)
-
-def MPTIS(MPTSs,MPTSDF, MPTMSs):
-    '''
-    MaxSym_int test
-    '''
-    if isinstance(MPTSs,float) and isinstance(MPTMSs,float)==True:
-        if (MPTSDF > 3):
-            s = MPTSs-MPTMSs
-        else:
-            return np.nan
-    else:
-        return np.nan
-    return float(s)
