@@ -1,0 +1,609 @@
+import os
+
+# To run locally:
+# snakemake --snakefile Snakefile_analysis --keep-going --cores 4 --config folder=.. --use-singularity --singularity-prefix ~/.singularity --singularity-args "--home ~"
+
+# To visualise the pipeline
+# snakemake --snakefile Snakefile_analysis --config folder=.. --dag | dot -Tsvg > pipeline_analysis.svg
+
+localrules: all, itol_annotations, itol_download, itol_pastml_2_col
+
+folder = os.path.abspath(config["folder"])
+data_dir = os.path.join(folder, 'data')
+
+# Change or add more family names here
+alns = ['MordellidaeMitogenomesPlusBarcodes', 'CleroideaRedoMItogenomesPlusBarcodes', 'CoccinellidaeMitogenomesPlusBarcodes', 'CarabidaeMitogenomesPlusBarcodes', 'AnthribidaeMitogenomesPlusBarcodes', 'PhalacridaeMitogenomesPlusBarcodes']
+# 'MelyridaeMItogenomesPlusBarcodes', 'CleridaeMitogenomesPlusBarcodes'
+families = ['Mordellidae', 'Cleroidea', 'Coccinellidae', 'Carabidae', 'Anthribidae', 'Phalacridae']
+# 'Melyridae', 'Cleridae'
+
+# Replace this with your iTOL id, to get one log into iTol, the go to <your_user_name> menu (top right) > Enable/disable APi access
+itol_id = '8YFpj9rQuU6LPejnGQtkZA'
+# Must be an existing iTOL project's name (you can create one by clicking iTOL gear icon (top right) > Add a project)
+itol_project = 'PastMLbeetles'
+
+# Check these
+reverse_strand_genes=['nad1', 'nad4', 'nad4l', 'nad5']
+
+ruleorder: rm_outliers_treetime > date_treetime
+
+rule all:
+    input:
+        # comment out the following line if you do not want to perform bootstrap analysis
+#        expand(os.path.join(data_dir, 'trees', 'raxml_{aln}.strand.bootstrap_stats'), aln=alns),
+        #
+        os.path.join(data_dir, 'acr', 'iTOL_urls.strand.Country_Realm.tab'),
+        os.path.join(data_dir, 'iTOL', 'iTOL_colorstrip-Mitogenome_Barcode.txt'),
+        expand(os.path.join(data_dir, 'figs', 'transitions_{aln}.strand.tt.{col}.{format}'), aln=alns, col=['Country', 'Realm'], format=['png']),
+        expand(os.path.join(data_dir, 'figs', 'tree_{aln}.strand.tt.Country_Realm.{col}.{format}'), aln=alns, col=['Country', 'Realm'], format=['png']),
+        expand(os.path.join(data_dir, 'figs', 'violin_strand.{col}.{format}'), col=['Country', 'Realm'], format=['png']),
+
+
+rule partitioning_nt:
+    '''
+    Prepare nucleotide partitioning files.
+    '''
+    input:
+        aln = os.path.join(data_dir, 'alignments', '{aln}.nexus'),
+    output:
+        part = os.path.join(data_dir, 'trees', '{tool}_{aln}.{level}.partition'),
+    threads: 1
+    singularity: "docker://evolbioinfo/python-evol:v3.6rich"
+    params:
+        mem = 10000,
+        name = 'part_{tool}.{level}',
+        rs = ' '.join(reverse_strand_genes)
+    shell:
+        """
+        python3 {folder}/py/dna_partitioner.py --input_nexus "{input.aln}" \
+        --output_partitioning "{output.part}" --level {wildcards.level} \
+        --tool {wildcards.tool} --reverse_strand {params.rs}
+        """
+
+rule tree_raxml_nt:
+    '''
+    Reconstructs a tree with RAxML.
+    '''
+    input:
+        aln = os.path.join(data_dir, 'alignments', '{aln}.fasta'),
+        part = os.path.join(data_dir, 'trees', 'raxml_{aln}.{level}.partition'),
+    output:
+        tree = os.path.join(data_dir, 'trees', 'raxml_{aln}.{level}.nwk'),
+        log = os.path.join(data_dir, 'trees', 'raxml_{aln}.{level}.log'),
+        model = os.path.join(data_dir, 'trees', 'raxml_{aln}.{level}.model'),
+    threads: 12
+    singularity: "docker://evolbioinfo/raxml-ng:v0.9.0"
+    params:
+        mem = 10000,
+        name = 'raxml',
+    shell:
+        """
+        cp "{input.aln}" "{input.aln}.tmp_raxml"
+        raxml-ng --search --model "{input.part}" --msa "{input.aln}.tmp_raxml" --msa-format FASTA --data-type DNA \
+        --tree pars{{1}} --seed 239 --threads {threads} --force
+        mv "{input.aln}.tmp_raxml.raxml.bestTree" "{output.tree}"
+        mv "{input.aln}.tmp_raxml.raxml.log" "{output.log}"
+        mv "{input.aln}.tmp_raxml.raxml.bestModel" "{output.model}"
+        rm -rf "{input.aln}.tmp_raxml*"
+        """
+
+rule bootstrap_trees_raxml_nt:
+    '''
+    Reconstructs bootstrap trees with RAxML.
+    '''
+    input:
+        aln = os.path.join(data_dir, 'alignments', '{aln}.fasta'),
+        part = os.path.join(data_dir, 'trees', 'raxml_{aln}.{level}.model'),
+    output:
+        trees_bs = os.path.join(data_dir, 'trees', 'raxml_{aln}.{level}.bootstrap.nwk'),
+    threads: 12
+    singularity: "docker://evolbioinfo/raxml-ng:v0.9.0"
+    params:
+        mem = 10000,
+        name = 'raxml',
+    shell:
+        """
+        cp "{input.aln}" "{input.aln}.tmp_bs_raxml"
+        raxml-ng --bootstrap --model "{input.part}" --msa "{input.aln}.tmp_bs_raxml" --msa-format FASTA --data-type DNA \
+        --tree pars{{1}} --seed 239 --threads {threads} --force --bs-trees 100
+        mv "{input.aln}.tmp_bs_raxml.raxml.bootstrap" "{output.trees_bs}"
+        rm -rf "{input.aln}.tmp_bs_raxml*"
+        """
+
+rule bootstrap_raxml:
+    '''
+    Calculate bootstrap on a tree reconstructed with RAxML.
+    '''
+    input:
+        tree = os.path.join(data_dir, 'trees', 'raxml_{aln}.nwk'),
+        trees_bs = os.path.join(data_dir, 'trees', 'raxml_{aln}.bootstrap.nwk'),
+    output:
+        tree = os.path.join(data_dir, 'trees', 'raxml_{aln}.{type,(fbp|tbe)}.nwk'),
+    threads: 12
+    singularity: "docker://evolbioinfo/raxml-ng:v0.9.0"
+    params:
+        mem = 10000,
+        name = 'bootstrap_{type}',
+    shell:
+        """
+        cp "{input.tree}" "{output.tree}".temp
+        raxml-ng --support  --seed 239 --tree "{output.tree}".temp --bs-trees "{input.trees_bs}" --threads {threads} --bs-metric {wildcards.type}
+        mv "{output.tree}.temp.raxml.support" "{output.tree}"
+        rm -rf "{output.tree}.temp.*"
+        """
+
+rule bootstrap_diff:
+    '''
+    Compares FBP and TBE bootstrap values.
+    '''
+    input:
+        tree_fbp = os.path.join(data_dir, 'trees', 'raxml_{aln}.fbp.nwk'),
+        tree_tbe = os.path.join(data_dir, 'trees', 'raxml_{aln}.tbe.nwk'),
+    output:
+        tree = os.path.join(data_dir, 'trees', 'raxml_{aln}.tbe-fbp.nwk'),
+        stats = os.path.join(data_dir, 'trees', 'raxml_{aln}.tbe-fbp.tab'),
+    params:
+        mem = 2000,
+        name = 'boot_diff',
+    singularity: "docker://evolbioinfo/python-evol:v3.6rich"
+    shell:
+        """
+        python3 {folder}/py/compare_bootstrap.py --fbp "{input.tree_fbp}" --tbe "{input.tree_tbe}" \
+        --tree "{output.tree}" --log "{output.stats}"
+        """
+
+rule bootstrap_stats:
+    '''
+    Calculates the number of nodes with bootstrap value > .07.
+    '''
+    input:
+        tree_fbp = os.path.join(data_dir, 'trees', 'raxml_{aln}.fbp.nwk'),
+        tree_tbe = os.path.join(data_dir, 'trees', 'raxml_{aln}.tbe.nwk'),
+        tree_tbe_fbp = os.path.join(data_dir, 'trees', 'raxml_{aln}.tbe-fbp.nwk'),
+    output:
+        stats = os.path.join(data_dir, 'trees', 'raxml_{aln}.bootstrap_stats'),
+    params:
+        mem = 2000,
+        name = 'boot_stat'
+    shell:
+        """
+        n=`grep -oh -e ')[0-9.]\\{{1,\\}}' "{input.tree_fbp}" | grep -oh -e "[0-9.]\\{{1,\\}}" | wc -l`
+        n_tbe=`grep -oh -e ')[0-9.]\\{{1,\\}}' "{input.tree_tbe}" | grep -oh -e "[0-9.]\\{{1,\\}}" | awk '{{if ($1>=.7) print $1}}' | wc -l`
+        n_fbp=`grep -oh -e ')[0-9.]\\{{1,\\}}' "{input.tree_fbp}" | grep -oh -e "[0-9.]\\{{1,\\}}" | awk '{{if ($1>=70) print $1}}' | wc -l`
+        n_avg_diff=`grep -oh -e ')[0-9.]\\{{1,\\}}' "{input.tree_tbe_fbp}" | grep -oh -e "[0-9.]\\{{1,\\}}" | awk '{{ total += $1; count++ }} END {{ print total/count }}'`
+        echo "number of internal nodes\t$n" >> "{output.stats}"
+        echo "number of internal nodes with TBE >= 0.7\t$n_tbe" >> "{output.stats}"
+        echo "number of internal nodes with FBP >= 0.7\t$n_fbp" >> "{output.stats}"
+        echo "average TBE-FBP\t$n_avg_diff" >> "{output.stats}"
+        """
+
+rule root_tree:
+    '''
+    Roots a tree with an outgroup.
+    '''
+    input:
+        tree = os.path.join(data_dir, 'trees', 'raxml_{aln}.{level}.nwk'),
+        outgroup = os.path.join(data_dir, 'alignments', 'outgroup_{aln}.txt'),
+    output:
+        tree = os.path.join(data_dir, 'trees', 'raxml_{aln}.{level}.rooted.nwk'),
+    singularity:
+        "docker://evolbioinfo/gotree:v0.3.0b"
+    params:
+        mem = 2000,
+        name = 'root',
+    threads: 1
+    shell:
+        """
+        gotree reroot outgroup -i "{input.tree}" -l "{input.outgroup}" -o "{output.tree}" -r
+        """
+
+rule extract_dates_treetime:
+    '''
+    Reformats metadata into date file readable by TreeTime.
+    '''
+    input:
+        tree = os.path.join(data_dir, 'trees', 'raxml_{aln}.{level}.rooted.nwk'),
+        root_age = os.path.join(data_dir, 'timetrees', 'age_{aln}.txt')
+    output:
+        tab = os.path.join(data_dir, 'timetrees', 'dates_treetime_{aln}.{level}.csv'),
+        tree = os.path.join(data_dir, 'trees', 'raxml_{aln}.{level}.outliers.rooted.nwk')
+    params:
+        mem = 1000,
+        name = 'dates_tt',
+    threads: 1
+    singularity: "docker://evolbioinfo/python-evol:v3.6rich"
+    shell:
+        """
+        python3 {folder}/py/extract_dates_treetime.py --tree "{input.tree}" --age `head "{input.root_age}"` \
+        --dates "{output.tab}" --out_tree "{output.tree}"
+        """
+
+
+rule date_treetime:
+    '''
+    Dates a tree.
+    '''
+    input:
+        aln = os.path.join(data_dir, 'alignments', '{aln}.fasta'),
+        tree = os.path.join(data_dir, 'trees', 'raxml_{aln}.{level}.outliers.rooted.nwk'),
+        dates = os.path.join(data_dir, 'timetrees', 'dates_treetime_{aln}.{level}.csv'),
+    output:
+        tree = os.path.join(data_dir, 'timetrees', 'raxml_{aln}.{level,(strand|pos|gene)}.outliers.tt.nexus'),
+        dates = os.path.join(data_dir, 'timetrees', 'raxml_{aln}.{level}.outliers.tt.dates'),
+        rates = os.path.join(data_dir, 'timetrees', 'raxml_{aln}.{level}.outliers.tt.rates'),
+        log = os.path.join(data_dir, 'timetrees', 'raxml_{aln}.{level}.outliers.tt.log'),
+        pdf = os.path.join(data_dir, 'timetrees', 'raxml_{aln}.{level,(strand|pos|gene)}.outliers.tt.rtt.pdf'),
+    threads: 6
+    singularity: "docker://evolbioinfo/treetime:v0.5.5"
+    params:
+        mem = 40000,
+        name = 'treetime',
+        wd = os.path.join(data_dir, 'timetrees',  'raxml_{aln}.{level}.tt')
+    shell:
+        """
+        n=`tail -n 1  "{input.aln}" | wc -c`
+        n=$(($n - 1))
+
+        treetime --tree "{input.tree}" --dates "{input.dates}" --sequence-length $n --keep-root \
+        --confidence --covariation --branch-length-mode input --relax 1 1 \
+        --plot-rtt rtt.pdf --outdir "{params.wd}" --verbose 0 --clock-filter 3 > "{output.log}"
+
+        cp "{params.wd}/dates.tsv" "{output.dates}"
+        cp "{params.wd}/substitution_rates.tsv" "{output.rates}"
+        cp "{params.wd}/timetree.nexus" "{output.tree}"
+        cp "{params.wd}/rtt.pdf" "{output.pdf}"
+
+        rm -rf "{params.wd}"
+        """
+
+
+rule rm_outliers_treetime:
+    '''
+    Removes outliers.
+    '''
+    input:
+        tree = os.path.join(data_dir, 'timetrees', 'raxml_{suffix}.outliers.tt.nwk'),
+        ref_log = os.path.join(data_dir, 'timetrees', 'raxml_{suffix}.outliers.tt.log'),
+    output:
+        tree = os.path.join(data_dir, 'timetrees', 'raxml_{suffix}.no_outliers.tt.nwk')
+    params:
+        mem = 1000,
+        name = 'no_tt'
+    threads: 1
+    singularity: "docker://evolbioinfo/python-evol:v3.6rich"
+    shell:
+        """
+        python3 {folder}/py/rm_outliers_tt.py --in_tree "{input.tree}" --ref "{input.ref_log}" --out_tree "{output.tree}" \
+        --allowed_diff 0
+        """
+
+rule rm_fake_root:
+    '''
+    Removes the fake root added for TreeTime.
+    '''
+    input:
+        tree = os.path.join(data_dir, 'timetrees', 'raxml_{aln}.{level}.no_outliers.tt.nwk'),
+        outgroup = os.path.join(data_dir, 'alignments', 'outingroup_{aln}.txt'),
+    output:
+        tree = os.path.join(data_dir, 'timetrees', 'raxml_{aln}.{level,(strand|pos|gene)}.tt.nwk'),
+        rd = os.path.join(data_dir, 'timetrees', 'raxml_{aln}.{level}.tt.rootdate'),
+    params:
+        mem = 1000,
+        name = 'no_tt'
+    threads: 1
+    singularity: "docker://evolbioinfo/python-evol:v3.6rich"
+    shell:
+        """
+        python3 {folder}/py/rm_fake_root.py --in_tree "{input.tree}" --out_tree "{output.tree}" \
+        --rootdate "{output.rd}" --outgroup "{input.outgroup}"
+        """
+
+rule convert_nex2nwk:
+    '''
+    Converts a nexus tree to newick.
+    '''
+    input:
+        tree = os.path.join(data_dir, 'timetrees', '{tree}.nexus'),
+    output:
+        tree = os.path.join(data_dir, 'timetrees', '{tree}.nwk'),
+    singularity:
+        "docker://evolbioinfo/gotree:v0.3.0b"
+    params:
+        mem = 2000,
+        name = 'nex2nwk',
+    threads: 1
+    shell:
+        """
+        gotree reformat newick -i "{input.tree}" -f nexus -o "{output.tree}"
+        sed -i -e 's/\\[[^]]*\\]//g' "{output.tree}"
+        """
+
+rule convert_nex2fa:
+    '''
+    Converts a nexus MSA to fasta.
+    '''
+    input:
+        aln = os.path.join(data_dir, 'alignments', '{aln}.nexus'),
+    output:
+        aln = os.path.join(data_dir, 'alignments', '{aln}.fasta'),
+    singularity: "docker://evolbioinfo/python-evol:v3.6rich"
+    params:
+        mem = 2000,
+        name = 'nex2fa',
+    threads: 1
+    shell:
+        """
+        python3 {folder}/py/nex2fa.py -i "{input.aln}" -o "{output.aln}"
+        """
+
+
+rule acr_pastml:
+    '''
+    ACR with PastML.
+    '''
+    input:
+        tree = os.path.join(data_dir, 'timetrees', 'raxml_{suffix}.nwk'),
+        data = os.path.join(data_dir, 'metadata.tab')
+    output:
+        map = os.path.join(data_dir, 'acr', 'raxml_{suffix}.{col}.compressed.html'),
+        tree = os.path.join(data_dir, 'acr', 'raxml_{suffix}.{col}.html'),
+        params = os.path.join(data_dir, 'acr', 'parameters', 'raxml_{suffix}', '{col}', 'params.character_{col}.method_MPPA.model_F81.tab'),
+        named_tree = os.path.join(data_dir, 'acr', 'parameters', 'raxml_{suffix}', '{col}', 'named.tree_raxml_{suffix}.nwk'),
+        acr = os.path.join(data_dir, 'acr', 'parameters', 'raxml_{suffix}', '{col}', 'combined_ancestral_states.tab'),
+    threads: 2
+    singularity: "docker://evolbioinfo/pastml:v1.9.20"
+    params:
+        mem = 4000,
+        name = 'pastml',
+        wd = os.path.join(data_dir, 'acr', 'parameters', 'raxml_{suffix}', '{col}')
+    shell:
+        """
+        pastml --tree "{input.tree}" --data "{input.data}" -i 2 \
+        --html_compressed "{output.map}" --html "{output.tree}" --columns "{wildcards.col}" \
+        -v --work_dir "{params.wd}" --tip_size_threshold 15 --timeline_type NODES
+        """
+
+rule itol_pastml_2_col:
+    '''
+    ACR for 2 columns and upload to iTOL with PastML.
+    '''
+    input:
+        tree = os.path.join(data_dir, 'timetrees', 'raxml_{suffix}.nwk'),
+        data = os.path.join(data_dir, 'metadata.tab'),
+        params1 = os.path.join(data_dir, 'acr', 'parameters', 'raxml_{suffix}', '{col1}', 'params.character_{col1}.method_MPPA.model_F81.tab'),
+        params2 = os.path.join(data_dir, 'acr', 'parameters', 'raxml_{suffix}', '{col2}', 'params.character_{col2}.method_MPPA.model_F81.tab'),
+    output:
+        map = os.path.join(data_dir, 'acr', 'raxml_{suffix}.{col1}_{col2}.compressed.html'),
+        tree = os.path.join(data_dir, 'acr', 'raxml_{suffix}.{col1}_{col2}.html'),
+        itol = os.path.join(data_dir, 'acr', 'parameters', 'raxml_{suffix}', '{col1}_{col2}', 'iTOL_url.txt'),
+        itol_id = os.path.join(data_dir, 'acr', 'parameters', 'raxml_{suffix}', '{col1}_{col2}', 'iTOL_tree_id.txt'),
+        named_tree = os.path.join(data_dir, 'acr', 'parameters', 'raxml_{suffix}', '{col1}_{col2}', 'named.tree_raxml_{suffix}.nwk'),
+        acr = os.path.join(data_dir, 'acr', 'parameters', 'raxml_{suffix}', '{col1}_{col2}', 'combined_ancestral_states.tab'),
+    threads: 2
+    singularity: "docker://evolbioinfo/pastml:v1.9.20"
+    params:
+        mem = 4000,
+        name = 'pastml_2_col',
+        wd = os.path.join(data_dir, 'acr', 'parameters', 'raxml_{suffix}', '{col1}_{col2}')
+    shell:
+        """
+        pastml --tree "{input.tree}" --data "{input.data}" -i 2 \
+        --html_compressed "{output.map}" --html "{output.tree}" --columns "{wildcards.col1}" "{wildcards.col2}" \
+        --name_column "{wildcards.col1}" \
+        -v --work_dir "{params.wd}" --tip_size_threshold 15 --timeline_type NODES \
+        --upload_to_itol --itol_id "{itol_id}" --itol_project "{itol_project}" \
+        --itol_tree_name "{wildcards.suffix}" \
+        --parameters "{input.params1}" "{input.params2}"
+        """
+
+rule combine_itol:
+    '''
+    Combines iTOL ids into one file.
+    '''
+    input:
+        itol = expand(os.path.join(data_dir, 'acr', 'parameters', 'raxml_{aln}.{{level}}.tt', '{{col1}}_{{col2}}', 'iTOL_url.txt'), aln=alns)
+    output:
+        tab = os.path.join(data_dir, 'acr', 'iTOL_urls.{level}.{col1}_{col2}.tab')
+    threads: 1
+    params:
+        mem = 1000,
+        name = 'itol',
+        itol = os.path.join(data_dir, 'acr', 'parameters', 'raxml_*.*', '{col1}_{col2}', 'iTOL_url.txt'),
+        suffix = os.path.join('{col1}_{col2}', 'iTOL_url.txt').replace('/', '\\/'),
+        prefix = os.path.join(data_dir, 'acr', 'parameters', 'raxml_').replace('/', '\\/'),
+    shell:
+        """
+        for f in {params.itol}
+        do
+            name=`echo "$f" | sed 's/{params.prefix}//g'`
+            name=`echo "$name" | sed 's/\\/{params.suffix}//g'`
+            echo "$name\t"`less "$f"` >> "{output.tab}"
+        done
+        """
+
+rule itol_download:
+    '''
+    Extracts itol metadata
+    '''
+    input:
+        tree = os.path.join(data_dir, 'acr', 'parameters', 'raxml_{aln}.{level}.tt', '{col1}_{col2}', 'iTOL_tree_id.txt')
+    output:
+        col1 = os.path.join(data_dir, 'figs', 'tree_{aln}.{level}.tt.{col1}_{col2}.{col1}.{format}'),
+        col2 = os.path.join(data_dir, 'figs', 'tree_{aln}.{level}.tt.{col1}_{col2}.{col2}.{format}'),
+    params:
+        mem = 2000,
+        name = 'itol_download',
+    singularity: "docker://evolbioinfo/python-evol:v3.6rich"
+    threads: 1
+    shell:
+        """
+        python3 {folder}/py/download_itol_tree.py -o {output.col1} -t `head "{input.tree}"` -f {wildcards.format} \
+        -c {wildcards.col1} --columns {wildcards.col1} {wildcards.col2}
+        python3 {folder}/py/download_itol_tree.py -o {output.col2} -t `head "{input.tree}"` -f {wildcards.format} \
+        -c {wildcards.col2} --columns {wildcards.col1} {wildcards.col2}
+        """
+
+
+rule itol_annotations:
+    '''
+    Extracts itol metadata
+    '''
+    input:
+        data = os.path.join(data_dir, 'metadata.tab')
+    output:
+        os.path.join(data_dir, 'iTOL', 'iTOL_colorstrip-Mitogenome_Barcode.txt'),
+    singularity:
+        "docker://evolbioinfo/table2itol:latest"
+    params:
+        mem = 2000,
+        name = 'itol',
+        wd = os.path.join(data_dir, 'iTOL')
+    threads: 1
+    shell:
+        """
+        table2itol.R -i "Sequence Name" {input.data} -D {params.wd}
+        """
+
+rule count_transitions:
+    '''
+    Counts transitions of different types in PastML ACR.
+    '''
+    input:
+        tree = os.path.join(data_dir, 'acr', 'parameters', 'raxml_{suffix}', '{col}', 'named.tree_raxml_{suffix}.nwk'),
+        acr = os.path.join(data_dir, 'acr', 'parameters', 'raxml_{suffix}', '{col}', 'combined_ancestral_states.tab'),
+        rd = os.path.join(data_dir, 'timetrees', 'raxml_{suffix}.rootdate'),
+    output:
+        dates = os.path.join(data_dir, 'acr', 'dates_{suffix}.{col}.tab'),
+        counts = os.path.join(data_dir, 'acr', 'counts_{suffix}.{col}.tab'),
+    threads: 2
+    singularity: "docker://evolbioinfo/pastml:v1.9.20"
+    params:
+        mem = 4000,
+        name = 'count_transitions'
+    threads: 1
+    shell:
+        """
+        python3 {folder}/py/transition_counter.py -t "{input.tree}" -d `head {input.rd}` -a "{input.acr}" \
+        -o "{output.dates}" -n "{output.counts}"
+        """
+
+rule visualise_transitions:
+    '''
+    Visualises transitions of different types in PastML ACR.
+    '''
+    input:
+        dates = os.path.join(data_dir, 'acr', 'dates_{suffix}.{col}.tab'),
+        counts = os.path.join(data_dir, 'acr', 'counts_{suffix}.{col}.tab'),
+    output:
+        fig = os.path.join(data_dir, 'figs', 'transitions_{suffix}.{col}.{format}'),
+    threads: 2
+    singularity: "docker://evolbioinfo/python-evol:v3.6rich"
+    params:
+        mem = 4000,
+        name = 'vis_transitions'
+    threads: 1
+    shell:
+        """
+        python3 {folder}/py/transition_visualiser.py -c "{input.counts}" -d "{input.dates}" \
+        --fig "{output.fig}"
+        """
+
+rule joint_visualisations:
+    '''
+    Visualises transitions of different types in PastML ACR for different families.
+    '''
+    input:
+        dates = expand(os.path.join(data_dir, 'acr', 'dates_{aln}.{{partition}}.tt.{{col}}.tab'), aln=alns),
+        counts = expand(os.path.join(data_dir, 'acr', 'counts_{aln}.{{partition}}.tt.{{col}}.tab'), aln=alns),
+    output:
+        violin = os.path.join(data_dir, 'figs', 'violin_{partition}.{col}.{format}'),
+        heatmap = os.path.join(data_dir, 'figs', 'heatmap_{partition}.{col}.{format}'),
+        scatter = os.path.join(data_dir, 'figs', 'scatter_{partition}.{col}.{format}'),
+    threads: 2
+    singularity: "docker://evolbioinfo/python-evol:v3.6rich"
+    params:
+        mem = 4000,
+        name = 'vis_transitions',
+        families = ' '.join('"{}"'.format(_) for _ in families)
+    threads: 1
+    shell:
+        """
+        python3 {folder}/py/joint_visualiser.py --violin "{output.violin}" --scatter "{output.scatter}" \
+        --heatmap "{output.heatmap}" -c {input.counts} -d {input.dates} \
+        --families {params.families}
+        """
+
+#rule log_lh_nt_raxml:
+#    '''
+#    Compares tree likelihoods with RAxML-NG.
+#    '''
+#    input:
+#        aln = os.path.join(data_dir, 'alignments', '{aln}.fasta'),
+#        trees = expand(os.path.join(data_dir, 'raxml_....nwk'), type=tree_types),
+#        part = os.path.join(data_dir, 'partition_raxml.txt'),
+#    output:
+#        log = os.path.join(data_dir, 'loglikelihoods_raxml.log'),
+#    threads: 12
+#    singularity: "docker://evolbioinfo/raxml-ng:v0.8.0-beta"
+#    params:
+#        mem = 10000,
+#        name = 'loglh_raxml',
+#    shell:
+#        """
+#        for t in `(ls {input.trees})`; do
+#            l=`(raxml-ng --evaluate --nofiles --log result --model {input.part} --msa {input.aln} --msa-format FASTA --data-type DNA --tree $t | grep "Final LogLikelihood:" | sed -e "s/Final LogLikelihood://g")`
+#            echo `(basename $t .nwk)`"  $l">> {output.log}
+#        done
+#        """
+#
+#rule compare_trees:
+#    '''
+#    Calculates RF and quartet distances between the trees.
+#    '''
+#    input:
+#        trees = os.path.join(data_dir, 'all_trees.nwk'),
+#        qt = os.path.join(data_dir, 'distances.quartet.tab'),
+#    output:
+#        log = os.path.join(data_dir, 'distances.tab')
+#    threads: int(len(tree_types) * (len(tree_types) - 1) / 2)
+#    params:
+#        mem = 10000,
+#        name = 'dist'
+#    singularity: "docker://evolbioinfo/python-evol:v3.6rich"
+#    shell:
+#        """
+#        python3 {folder}/py/compare_trees.py --trees {input.trees} \
+#        --output {output.log} --qt {input.qt}
+#        """
+#
+#rule merge_nwk:
+#    '''
+#    Merge multiple one-tree newick files into one multiple-tree newick file.
+#    '''
+#    input:
+#        trees = expand(os.path.join(data_dir, '{type}_tree.nwk'), type=tree_types)
+#    output:
+#        trees = temp(os.path.join(data_dir, 'all_trees.nwk')),
+#    params:
+#        mem = 1000,
+#        name = 'merge_nwk'
+#    threads: 1
+#    shell:
+#        """
+#        ls {input.trees} | xargs cat >> {output.trees}
+#        """
+#
+#rule quartet_dists:
+#    '''
+#    Calculates quartet distances with tqDist.
+#    '''
+#    input:
+#        trees = os.path.join(data_dir, 'all_trees.nwk')
+#    output:
+#        log = temp(os.path.join(data_dir, 'distances.quartet.tab')),
+#    threads: 1
+#    singularity: "docker://evolbioinfo/tqdist:v1.0.1"
+#    params:
+#        mem = 8000,
+#        name = 'tqdist'
+#    shell: "all_pairs_quartet_dist {input} {output}"

@@ -1,0 +1,124 @@
+
+RAxML-NG v. 0.9.0 released on 20.05.2019 by The Exelixis Lab.
+Developed by: Alexey M. Kozlov and Alexandros Stamatakis.
+Contributors: Diego Darriba, Tomas Flouri, Benoit Morel, Sarah Lutteropp, Ben Bettisworth.
+Latest version: https://github.com/amkozlov/raxml-ng
+Questions/problems/suggestions? Please visit: https://groups.google.com/forum/#!forum/raxml
+
+RAxML-NG was called at 09-Oct-2019 17:40:14 as follows:
+
+raxml-ng --search --model /pasteur/homes/azhukova/projects/coleoptera/data/trees/raxml_PhalacridaeMitogenomesPlusBarcodes.strand.partition --msa /pasteur/homes/azhukova/projects/coleoptera/data/alignments/PhalacridaeMitogenomesPlusBarcodes.fasta.tmp_raxml --msa-format FASTA --data-type DNA --tree pars{1} --seed 239 --threads 12 --force
+
+Analysis options:
+  run mode: ML tree search
+  start tree(s): parsimony (1)
+  random seed: 239
+  tip-inner: OFF
+  pattern compression: ON
+  per-rate scalers: OFF
+  site repeats: ON
+  fast spr radius: AUTO
+  spr subtree cutoff: 1.000000
+  branch lengths: proportional (ML estimate, algorithm: NR-FAST)
+  SIMD kernels: AVX2
+  parallelization: PTHREADS (12 threads), thread pinning: OFF
+
+WARNING: Running in FORCE mode: all safety checks are disabled!
+
+[00:00:00] Reading alignment from file: /pasteur/homes/azhukova/projects/coleoptera/data/alignments/PhalacridaeMitogenomesPlusBarcodes.fasta.tmp_raxml
+[00:00:00] Loaded alignment with 223 taxa and 11205 sites
+
+Alignment comprises 4 partitions and 7041 patterns
+
+Partition 0: forward_12
+Model: GTR+FO+I+G6m+B
+Alignment sites / patterns: 4786 / 2216
+Gaps: 76.16 %
+Invariant sites: 56.27 %
+
+Partition 1: forward_3
+Model: GTR+FO+I+G6m+B
+Alignment sites / patterns: 2393 / 2315
+Gaps: 76.17 %
+Invariant sites: 4.51 %
+
+Partition 2: reverse_12
+Model: GTR+FO+I+G6m+B
+Alignment sites / patterns: 2684 / 1279
+Gaps: 86.13 %
+Invariant sites: 52.27 %
+
+Partition 3: reverse_3
+Model: GTR+FO+I+G6m+B
+Alignment sites / patterns: 1342 / 1231
+Gaps: 86.14 %
+Invariant sites: 8.49 %
+
+
+NOTE: Binary MSA file created: /pasteur/homes/azhukova/projects/coleoptera/data/alignments/PhalacridaeMitogenomesPlusBarcodes.fasta.tmp_raxml.raxml.rba
+
+[00:00:00] Generating 1 parsimony starting tree(s) with 223 taxa
+[00:00:00] Data distribution: max. partitions/sites/weight per thread: 2 / 587 / 14088
+
+Starting ML tree search with 1 distinct starting trees
+
+[00:00:00 -230714.745480] Initial branch length optimization
+[00:00:01 -214414.416114] Model parameter optimization (eps = 10.000000)
+[00:00:40 -191912.190667] AUTODETECT spr round 1 (radius: 5)
+[00:00:44 -191028.811556] AUTODETECT spr round 2 (radius: 10)
+[00:00:54 -190797.760872] AUTODETECT spr round 3 (radius: 15)
+[00:01:06 -190795.460393] AUTODETECT spr round 4 (radius: 20)
+[00:01:20 -190792.633057] AUTODETECT spr round 5 (radius: 25)
+[00:01:30 -190792.604904] SPR radius for FAST iterations: 20 (autodetect)
+[00:01:30 -190792.604904] Model parameter optimization (eps = 3.000000)
+[00:01:36 -190768.411471] FAST spr round 1 (radius: 20)
+[00:02:03 -190625.633495] FAST spr round 2 (radius: 20)
+[00:02:23 -190601.824632] FAST spr round 3 (radius: 20)
+[00:02:36 -190599.863376] FAST spr round 4 (radius: 20)
+[00:02:48 -190598.979011] FAST spr round 5 (radius: 20)
+[00:02:58 -190598.502371] FAST spr round 6 (radius: 20)
+[00:03:08 -190598.104790] FAST spr round 7 (radius: 20)
+[00:03:17 -190597.748232] FAST spr round 8 (radius: 20)
+[00:03:27 -190597.502469] FAST spr round 9 (radius: 20)
+[00:03:37 -190597.288872] FAST spr round 10 (radius: 20)
+[00:03:47 -190597.209830] Model parameter optimization (eps = 1.000000)
+[00:03:53 -190586.200051] SLOW spr round 1 (radius: 5)
+[00:04:21 -190571.837935] SLOW spr round 2 (radius: 5)
+[00:04:49 -190566.878774] SLOW spr round 3 (radius: 5)
+[00:05:15 -190566.804042] SLOW spr round 4 (radius: 10)
+[00:05:53 -190562.294733] SLOW spr round 5 (radius: 5)
+[00:06:27 -190555.332236] SLOW spr round 6 (radius: 5)
+[00:06:55 -190552.210921] SLOW spr round 7 (radius: 5)
+[00:07:23 -190551.289691] SLOW spr round 8 (radius: 5)
+[00:07:50 -190551.254300] SLOW spr round 9 (radius: 10)
+[00:08:27 -190549.265157] SLOW spr round 10 (radius: 5)
+[00:08:59 -190548.362386] SLOW spr round 11 (radius: 5)
+[00:09:27 -190547.145601] SLOW spr round 12 (radius: 5)
+[00:09:55 -190547.099728] SLOW spr round 13 (radius: 10)
+[00:10:33 -190547.096948] SLOW spr round 14 (radius: 15)
+[00:12:00 -190546.617902] SLOW spr round 15 (radius: 5)
+[00:12:32 -190546.513727] SLOW spr round 16 (radius: 5)
+[00:13:01 -190546.513114] SLOW spr round 17 (radius: 10)
+[00:13:41 -190546.513033] SLOW spr round 18 (radius: 15)
+[00:15:06 -190546.513008] SLOW spr round 19 (radius: 20)
+[00:16:25 -190546.512998] SLOW spr round 20 (radius: 25)
+[00:17:12 -190546.512993] Model parameter optimization (eps = 0.100000)
+
+[00:17:22] ML tree search #1, logLikelihood: -190539.297635
+
+
+
+Final LogLikelihood: -190539.297635
+
+AIC score: 382050.595270 / AICc score: 382094.760599 / BIC score: 385610.115347
+Free parameters (model + branch lengths): 486
+
+Best ML tree saved to: /pasteur/homes/azhukova/projects/coleoptera/data/alignments/PhalacridaeMitogenomesPlusBarcodes.fasta.tmp_raxml.raxml.bestTree
+Optimized model saved to: /pasteur/homes/azhukova/projects/coleoptera/data/alignments/PhalacridaeMitogenomesPlusBarcodes.fasta.tmp_raxml.raxml.bestModel
+
+Execution log saved to: /pasteur/homes/azhukova/projects/coleoptera/data/alignments/PhalacridaeMitogenomesPlusBarcodes.fasta.tmp_raxml.raxml.log
+
+Analysis started: 09-Oct-2019 17:40:14 / finished: 09-Oct-2019 17:57:37
+
+Elapsed time: 1042.743 seconds
+

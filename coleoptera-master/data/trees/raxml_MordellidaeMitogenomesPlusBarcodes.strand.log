@@ -1,0 +1,137 @@
+
+RAxML-NG v. 0.9.0 released on 20.05.2019 by The Exelixis Lab.
+Developed by: Alexey M. Kozlov and Alexandros Stamatakis.
+Contributors: Diego Darriba, Tomas Flouri, Benoit Morel, Sarah Lutteropp, Ben Bettisworth.
+Latest version: https://github.com/amkozlov/raxml-ng
+Questions/problems/suggestions? Please visit: https://groups.google.com/forum/#!forum/raxml
+
+RAxML-NG was called at 23-Sep-2019 16:04:05 as follows:
+
+raxml-ng --search --model /pasteur/homes/azhukova/projects/colioptera/data/trees/raxml_MordellidaeMitogenomesPlusBarcodes.strand.partition --msa /pasteur/homes/azhukova/projects/colioptera/data/alignments/MordellidaeMitogenomesPlusBarcodes.fasta.tmp_raxml --msa-format FASTA --data-type DNA --tree pars{1} --seed 239 --threads 12 --force
+
+Analysis options:
+  run mode: ML tree search
+  start tree(s): parsimony (1)
+  random seed: 239
+  tip-inner: OFF
+  pattern compression: ON
+  per-rate scalers: OFF
+  site repeats: ON
+  fast spr radius: AUTO
+  spr subtree cutoff: 1.000000
+  branch lengths: proportional (ML estimate, algorithm: NR-FAST)
+  SIMD kernels: AVX2
+  parallelization: PTHREADS (12 threads), thread pinning: OFF
+
+WARNING: Running in FORCE mode: all safety checks are disabled!
+
+[00:00:00] Reading alignment from file: /pasteur/homes/azhukova/projects/colioptera/data/alignments/MordellidaeMitogenomesPlusBarcodes.fasta.tmp_raxml
+[00:00:00] Loaded alignment with 815 taxa and 11046 sites
+
+Alignment comprises 4 partitions and 8159 patterns
+
+Partition 0: forward_12
+Model: GTR+FO+I+G6m+B
+Alignment sites / patterns: 4502 / 2728
+Gaps: 81.64 %
+Invariant sites: 44.31 %
+
+Partition 1: forward_3
+Model: GTR+FO+I+G6m+B
+Alignment sites / patterns: 2251 / 2250
+Gaps: 81.65 %
+Invariant sites: 0.98 %
+
+Partition 2: reverse_12
+Model: GTR+FO+I+G6m+B
+Alignment sites / patterns: 2862 / 1755
+Gaps: 91.14 %
+Invariant sites: 39.34 %
+
+Partition 3: reverse_3
+Model: GTR+FO+I+G6m+B
+Alignment sites / patterns: 1431 / 1426
+Gaps: 91.14 %
+Invariant sites: 0.63 %
+
+
+NOTE: Binary MSA file created: /pasteur/homes/azhukova/projects/colioptera/data/alignments/MordellidaeMitogenomesPlusBarcodes.fasta.tmp_raxml.raxml.rba
+
+[00:00:00] Generating 1 parsimony starting tree(s) with 815 taxa
+[00:00:05] Data distribution: max. partitions/sites/weight per thread: 2 / 680 / 16320
+
+Starting ML tree search with 1 distinct starting trees
+
+[00:00:05 -690538.128294] Initial branch length optimization
+[00:00:08 -648120.297872] Model parameter optimization (eps = 10.000000)
+[00:02:49 -589840.529940] AUTODETECT spr round 1 (radius: 5)
+[00:03:35 -587188.776538] AUTODETECT spr round 2 (radius: 10)
+[00:04:48 -585702.000532] AUTODETECT spr round 3 (radius: 15)
+[00:06:54 -585042.908875] AUTODETECT spr round 4 (radius: 20)
+[00:09:43 -584883.218285] AUTODETECT spr round 5 (radius: 25)
+[00:13:10 -584851.328554] SPR radius for FAST iterations: 25 (autodetect)
+[00:13:10 -584851.328554] Model parameter optimization (eps = 3.000000)
+[00:13:40 -584823.957652] FAST spr round 1 (radius: 25)
+[00:20:35 -583951.039286] FAST spr round 2 (radius: 25)
+[00:26:43 -583785.471526] FAST spr round 3 (radius: 25)
+[00:30:40 -583761.074214] FAST spr round 4 (radius: 25)
+[00:33:14 -583757.602093] FAST spr round 5 (radius: 25)
+[00:35:05 -583754.427169] FAST spr round 6 (radius: 25)
+[00:36:36 -583753.278677] FAST spr round 7 (radius: 25)
+[00:37:57 -583752.793371] FAST spr round 8 (radius: 25)
+[00:39:12 -583752.343033] FAST spr round 9 (radius: 25)
+[00:40:26 -583752.013636] FAST spr round 10 (radius: 25)
+[00:41:39 -583749.477274] FAST spr round 11 (radius: 25)
+[00:42:53 -583748.418324] FAST spr round 12 (radius: 25)
+[00:44:08 -583747.381834] FAST spr round 13 (radius: 25)
+[00:45:23 -583747.197292] FAST spr round 14 (radius: 25)
+[00:46:37 -583747.042558] FAST spr round 15 (radius: 25)
+[00:47:51 -583745.869431] FAST spr round 16 (radius: 25)
+[00:49:10 -583743.624019] FAST spr round 17 (radius: 25)
+[00:50:26 -583742.617191] FAST spr round 18 (radius: 25)
+[00:51:48 -583740.411236] FAST spr round 19 (radius: 25)
+[00:53:07 -583734.288299] FAST spr round 20 (radius: 25)
+[00:54:20 -583734.078752] FAST spr round 21 (radius: 25)
+[00:55:32 -583733.729698] FAST spr round 22 (radius: 25)
+[00:56:46 -583733.524473] FAST spr round 23 (radius: 25)
+[00:58:00 -583733.438704] Model parameter optimization (eps = 1.000000)
+[00:58:39 -583720.779534] SLOW spr round 1 (radius: 5)
+[01:01:04 -583656.577705] SLOW spr round 2 (radius: 5)
+[01:03:24 -583646.640342] SLOW spr round 3 (radius: 5)
+[01:05:32 -583646.576165] SLOW spr round 4 (radius: 10)
+[01:08:17 -583634.554861] SLOW spr round 5 (radius: 5)
+[01:11:08 -583626.722422] SLOW spr round 6 (radius: 5)
+[01:13:40 -583626.234236] SLOW spr round 7 (radius: 5)
+[01:15:59 -583626.229469] SLOW spr round 8 (radius: 10)
+[01:18:52 -583624.413427] SLOW spr round 9 (radius: 5)
+[01:21:40 -583623.231461] SLOW spr round 10 (radius: 5)
+[01:24:08 -583623.230656] SLOW spr round 11 (radius: 10)
+[01:27:20 -583620.739541] SLOW spr round 12 (radius: 5)
+[01:30:08 -583619.382833] SLOW spr round 13 (radius: 5)
+[01:32:41 -583619.381786] SLOW spr round 14 (radius: 10)
+[01:35:50 -583619.381345] SLOW spr round 15 (radius: 15)
+[01:49:12 -583618.321572] SLOW spr round 16 (radius: 5)
+[01:51:49 -583618.253341] SLOW spr round 17 (radius: 10)
+[01:55:54 -583618.253161] SLOW spr round 18 (radius: 15)
+[02:06:33 -583618.253038] SLOW spr round 19 (radius: 20)
+[02:29:05 -583618.252948] SLOW spr round 20 (radius: 25)
+[02:50:51 -583618.252882] Model parameter optimization (eps = 0.100000)
+
+[02:51:36] ML tree search #1, logLikelihood: -583612.756892
+
+
+
+Final LogLikelihood: -583612.756892
+
+AIC score: 1170565.513785 / AICc score: 1171160.835385 / BIC score: 1182772.919281
+Free parameters (model + branch lengths): 1670
+
+Best ML tree saved to: /pasteur/homes/azhukova/projects/colioptera/data/alignments/MordellidaeMitogenomesPlusBarcodes.fasta.tmp_raxml.raxml.bestTree
+Optimized model saved to: /pasteur/homes/azhukova/projects/colioptera/data/alignments/MordellidaeMitogenomesPlusBarcodes.fasta.tmp_raxml.raxml.bestModel
+
+Execution log saved to: /pasteur/homes/azhukova/projects/colioptera/data/alignments/MordellidaeMitogenomesPlusBarcodes.fasta.tmp_raxml.raxml.log
+
+Analysis started: 23-Sep-2019 16:04:05 / finished: 23-Sep-2019 18:55:41
+
+Elapsed time: 10296.216 seconds
+
