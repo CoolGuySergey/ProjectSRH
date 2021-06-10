@@ -25,6 +25,7 @@ def DivergenceMtx(x, y):
 def Bowkers(m):
     '''
     MaxSym test/Bowker's test. If < 0.05, general symmetry is violated. Obtaining the data by chance under stationarity (assumption I) or global homogeneity (assumption III) is unlikely.
+    n(n-1)/2 degrees of freedom, where n is the number of categories
     '''
     denominator = m+m.T
     # (dij + dji) all changes that are taking place
@@ -72,6 +73,7 @@ def Bowkers(m):
         # divide appropriate pairs and add them all up
         df = np.count_nonzero(denominator)
         # how many types of changes are going on, should be 6 max
+        # i.e. number of i,j pairs for which dij + dji > 0
         return float(s), int(df)
     else:
         return np.nan
