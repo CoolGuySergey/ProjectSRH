@@ -2,6 +2,7 @@
 
 import numpy as np
 import math
+import itertools as ite
 
 def DivergenceMtx(x, y):
     '''
@@ -30,18 +31,22 @@ def Stuarts(m):
     # Stuart's test statistics = u.T * V^-1 * u
     # u being the sequence pair’s vector of marginal differences
     # u.T = (d1• – d•1, d2• – d•2, d3• – d•3)
-    # V being the variance-covariance matrix
+    # V being the variance-covariance matrix (3*3)
     
     r = np.zeros((3)) # array([0., 0., 0.])
     r[0]=np.sum(m[0])
     r[1]=np.sum(m[1])
     r[2]=np.sum(m[2])
-    c = [sum(row[i] for row in m) for i in range(4)]
-    d = [r[0]-c[0],r[1]-c[1],r[2]-c[2]]
+    # summing across the rows of m, fetching dj•
     
+    c = [sum(row[i] for row in m) for i in range(4)]
+    # summing across the columns of m, fetching  d•j
 
-    ut = np.array([[d[0],d[1],d[2]]])
-    u = ut.transpose()
+    d = [r[0]-c[0],r[1]-c[1],r[2]-c[2]]
+
+    u = (np.array([[d[0],d[1],d[2]]])).transpose()
+    # needs extra pair of square brackets to transpose
+    
     V = np.zeros((3,3))
     for (i,j) in ite.product(range(0,3),range(0,3)):
         if i==j:
@@ -50,23 +55,15 @@ def Stuarts(m):
             V[i,j]=-(m[i,j]+m[j,i])
         # Vij = dj• + d•j - 2dii  <-- if i=j
         # Vij = -(dij+dji)        <-- if i!=j
+        
+    # V is now a 3*3 symmetric that generalises the notion of variance to multiple dimensions
 
     if np.linalg.matrix_rank(V) != V.shape[0]:
+        # checking that there aren't any cols/rows that give us
+        # no new information
+        
         return np.nan
     else:
         Vi=np.linalg.inv(V)
-        s = (ut.dot(Vi)).dot(u)[0][0]
+        s = (ut.dot(Vi)).dot(u)[0][0] # u.T * V^-1 * u
         return float(s)
-
-def MPTIS(MPTSs,MPTSDF, MPTMSs):
-    '''
-    MaxSym_int test
-    '''
-    if isinstance(MPTSs,float) and isinstance(MPTMSs,float)==True:
-        if (MPTSDF > 3):
-            s = MPTSs-MPTMSs
-        else:
-            return np.nan
-    else:
-        return np.nan
-    return float(s)
