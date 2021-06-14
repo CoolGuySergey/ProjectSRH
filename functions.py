@@ -11,8 +11,9 @@ def readseq(path):
     with open(path, "r") as filein:
         fasta = [i.split('\n') for i in filein.read().strip().split('\n\n')]
     seqIDs = fasta[0][::2]
-    seqs = fasta[0][1::2]
-    return dict(zip(seqIDs, seqs))
+    seqsOriginalCases = fasta[0][1::2]
+    seqsUpperCases = [each_string.upper() for each_string in seqsOriginalCases]
+    return dict(zip(seqIDs, seqsUpperCases))
 
 # Build divergence matrix m between two seqs x and y
 # m is the founding basis for all three symmetry tests to follow
@@ -20,10 +21,11 @@ def DivergenceMtx(x, y):
     '''
     divergence matrix
     '''
-    a = np.array(list('acgt'))
+
     x = np.array(list(x))
     y = np.array(list(y))
-
+    a = np.array(list('ACGT'))
+    
     ax = (x[:, None] == a[None, :]).astype(int)
     ay = (y[:, None] == a[None, :]).astype(int)
     # array[:, None] smears array vertically
