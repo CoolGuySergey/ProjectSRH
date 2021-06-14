@@ -1,4 +1,0 @@
-*.pyc
-
-.snakemake
-snakemake/logs

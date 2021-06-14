@@ -66,6 +66,9 @@ def Bowkers(m):
     #                     [1],
     #                     [2]]])
     # will become array([0, 1, 2])
+    
+    nonzeros = np.where(denominator != 0)[0]
+    #print(np.where(denominator != 0)[0])
 
     if np.count_nonzero(denominator) != 0:
         # check that I don't have an all-zero denominator
