@@ -182,29 +182,34 @@ def Broadcast2Matrix(statsstring, seqDict):
     '''
     n = len(seqDict)
     mat = np.eye(n) # create n*n zero matrix
-    mat[np.tril_indices(n)] = np.nan # fill main diagonal and ul with nan
     iuu = np.triu_indices(n, 1) # 1 to exlude main diagonal
-    mat[iuu] = statsstring
+    mat[iuu] = statsstring # project string to upper triangular
+
+    mat = mat + mat.T - np.diag(np.diag(mat))
+    # Project to lower triangular by adding the transpose and subtracting the diagonal. Probably will be faster albeit less readable
+    
     df = pd.DataFrame(mat,columns=seqDict.keys())
     df.index = seqDict.keys()
     return df
 
 # for sequences a,b,c,d,e
 # itertools/allpairs/allstats ALWAYS comes out in this order:
-#          {"a" : [score with b, score with c, score with d, score with e],
-#           "b" : [score with c, score with d, score with e],
-#           "c" : [score with d, score with e],
-#           "d" : [score with e]
-#           }
+#         {"a" : [score with b, score with c, score with d, score with e],
+#          "b" : [score with c, score with d, score with e],
+#          "c" : [score with d, score with e],
+#          "d" : [score with e]
+#         }
 # so we can write them to the upper triangle directly
 
 def MaskedHeatmap (dataframe, filename):
 
-    cmap = sns.mpl_palette("Blues", 2)
+    #cmap = sns.mpl_palette("Blues", 2)
     alpha = 0.05 # uncorrected alpha level. No Bonferroni correction yet
 
-    sns.heatmap(data=dataframe, cmap=cmap, cbar=False, center=0.05)
-    plt.xticks(rotation=45, fontfamily='monospace', fontsize=7)
-    plt.yticks(rotation=0, fontfamily='monospace', fontsize=7)
-    plt.tight_layout()
-    plt.savefig(f"{filename}.png", format='png',dpi=150)
+    boolean = dataframe < alpha
+    
+    cg = sns.clustermap(boolean)
+    cg.ax_row_dendrogram.set_visible(False)
+    cg.ax_col_dendrogram.set_visible(False)
+    cg.cax.set_visible(False)
+    plt.show()
