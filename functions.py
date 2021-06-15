@@ -4,6 +4,7 @@ import itertools as ite
 import numpy as np
 from scipy.stats import chi2
 import math
+import pandas as pd
 
 # Input alignment pair to creat seq dictionary
 # Don't forget to check if fasta is awk unwrapped to take up single lines
@@ -18,6 +19,7 @@ def readseq(path):
 # Build divergence matrix m between two seqs x and y
 # m is the founding basis for all three symmetry tests to follow
 def DivergenceMtx(x, y):
+
     '''
     divergence matrix
     '''
@@ -170,3 +172,26 @@ def pval(s,df):
         return p
     else:
         return np.nan
+
+# Broadcast2Matrix()
+def Broadcast2Matrix(statsstring, seqDict):
+    '''
+    broadcast string of stats to upper triangle of pandas dataframe
+    '''
+    n = len(seqDict)
+    mat = np.eye(n) # create n*n zero matrix
+    mat[np.tril_indices(n)] = np.nan # fill main diagonal and ul with nan
+    iuu = np.triu_indices(n, 1) # 1 to exlude main diagonal
+    mat[iuu] = statsstring
+    df = pd.DataFrame(mat,columns=seqDict.keys())
+    df.index = seqDict.keys()
+    return df
+
+# for sequences a,b,c,d,e
+# itertools/allpairs/allstats ALWAYS comes out in this order:
+#          {"a" : [score with b, score with c, score with d, score with e],
+#           "b" : [score with c, score with d, score with e],
+#           "c" : [score with d, score with e],
+#           "d" : [score with e]
+#           }
+# so we can write them to the upper triangle directly
