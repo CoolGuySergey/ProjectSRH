@@ -5,6 +5,8 @@ import numpy as np
 from scipy.stats import chi2
 import math
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 # Input alignment pair to creat seq dictionary
 # Don't forget to check if fasta is awk unwrapped to take up single lines
@@ -195,3 +197,14 @@ def Broadcast2Matrix(statsstring, seqDict):
 #           "d" : [score with e]
 #           }
 # so we can write them to the upper triangle directly
+
+def MaskedHeatmap (dataframe, filename):
+
+    cmap = sns.mpl_palette("Blues", 2)
+    alpha = 0.05 # uncorrected alpha level. No Bonferroni correction yet
+
+    sns.heatmap(data=dataframe, cmap=cmap, cbar=False, center=0.05)
+    plt.xticks(rotation=45, fontfamily='monospace', fontsize=7)
+    plt.yticks(rotation=0, fontfamily='monospace', fontsize=7)
+    plt.tight_layout()
+    plt.savefig(f"{filename}.png", format='png',dpi=150)
