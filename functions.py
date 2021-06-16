@@ -10,16 +10,34 @@ import matplotlib.pyplot as plt
 
 # Input alignment pair to creat seq dictionary
 # Don't forget to check if fasta is awk unwrapped to take up single lines
-def readseq(path):
+def Readseq(path):
     with open(path, "r") as filein:
         fasta = [i.split('\n') for i in filein.read().strip().split('\n\n')]
-    seqIDs = fasta[0][::2]
-    seqsOriginalCases = fasta[0][1::2]
-    seqsUpperCases = [each_string.upper() for each_string in seqsOriginalCases]
-    return dict(zip(seqIDs, seqsUpperCases))
+    SeqIDs = fasta[0][::2]
+    SeqsOriginalCases = fasta[0][1::2]
+    SeqsUpperCases = [each_string.upper() for each_string in SeqsOriginalCases]
+
+    return dict(zip(SeqIDs, SeqsUpperCases))
 
 # Build divergence matrix m between two seqs x and y
 # m is the founding basis for all three symmetry tests to follow
+
+def CodonSplitter(InputDict):
+    
+    """
+    Split input dictionary into three dictionaries
+    """
+    
+    PosOne = [each_string[::3] for each_string in InputDict.values()]
+    PosTwo = [each_string[1::3] for each_string in InputDict.values()]
+    PosThree = [each_string[2::3] for each_string in InputDict.values()]
+
+    PosOneDict=dict(zip(InputDict.keys(), PosOne))
+    PosTwoDict=dict(zip(InputDict.keys(), PosTwo))
+    PosThreeDict=dict(zip(InputDict.keys(), PosThree))
+
+    return PosOneDict, PosTwoDict, PosThreeDict
+
 def DivergenceMtx(x, y):
 
     '''
@@ -40,6 +58,7 @@ def DivergenceMtx(x, y):
     return np.dot(ay.T, ax) # len*4.T into len*4 = 4*len into len*4
     # this will be your 4*4 divergence matrix, m
 
+
 # First of three tests. df for Bowkers is returned in the same funciton
 def Bowkers(m):
     '''
@@ -57,7 +76,7 @@ def Bowkers(m):
     # multiplying m-m.T by itself makes numerator a 4*4 matrix
     # that's symmetrical across the main diagonal
     
-    off_diag_indices = np.triu_indices(4,1)
+    OffDiagIndices = np.triu_indices(4,1)
     # np.triu_indices is tricky
     # but basically tiu stands for upper triangle and
     # if you have a 4*4 matrix a = np.arange(16).reshape(4, 4)
@@ -75,9 +94,9 @@ def Bowkers(m):
     # the 1 exludes the main diagonal from the valid indices
     # it makes sense to only take the upper off-diagonals
 
-    numerator = np.squeeze(np.asarray(numerator[off_diag_indices]))
-    denominator = np.squeeze(np.asarray(denominator[off_diag_indices]))
-    # here we use off_diag_indices to actually take the numbers
+    numerator = np.squeeze(np.asarray(numerator[OffDiagIndices]))
+    denominator = np.squeeze(np.asarray(denominator[OffDiagIndices]))
+    # here we use OffDiagIndices to actually take the numbers
     # np.asarray step is kinda redundant
     # np.squeeze returns the input array
     # but with all dimensions of length 1 removed
@@ -164,6 +183,7 @@ def Ababnehs(BowkersStat,BowkersDF, StuartsStat):
         return np.nan
     return float(s)
 
+
 # Fetch p-values
 def pval(s,df):
     '''
@@ -198,18 +218,18 @@ def Broadcast2Matrix(statsstring, seqDict):
 #          "b" : [score with c, score with d, score with e],
 #          "c" : [score with d, score with e],
 #          "d" : [score with e]
-#         }
-# so we can write them to the upper triangle directly
+
 
 def MaskedHeatmap (dataframe, filename):
 
-    #cmap = sns.mpl_palette("Blues", 2)
     alpha = 0.05 # uncorrected alpha level. No Bonferroni correction yet
 
     boolean = dataframe < alpha
     
-    cg = sns.clustermap(boolean)
+    cmap = sns.diverging_palette(240,10,n=2)
+    cg = sns.clustermap(boolean, cmap=cmap)
     cg.ax_row_dendrogram.set_visible(False)
     cg.ax_col_dendrogram.set_visible(False)
     cg.cax.set_visible(False)
-    plt.show()
+    cg.savefig(filename, format="png", dpi=150)
+    #plt.show()
