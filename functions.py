@@ -227,9 +227,12 @@ def MaskedHeatmap (dataframe, filename):
     boolean = dataframe < alpha
     
     cmap = sns.diverging_palette(240,10,n=2)
-    cg = sns.clustermap(boolean, cmap=cmap)
-    cg.ax_row_dendrogram.set_visible(False)
-    cg.ax_col_dendrogram.set_visible(False)
-    cg.cax.set_visible(False)
-    cg.savefig(filename, format="png", dpi=150)
+    cg = sns.clustermap(boolean, cmap=cmap, yticklabels=1, xticklabels=1)
+    cg.ax_heatmap.set_xticklabels(cg.ax_heatmap.get_xmajorticklabels(), fontsize=3)
+    cg.ax_heatmap.set_yticklabels(cg.ax_heatmap.get_ymajorticklabels(), fontsize=3)
+
+    cg.ax_row_dendrogram.set_visible(False) # Hide 'trees'
+    cg.ax_col_dendrogram.set_visible(False) # Hide 'trees'
+    cg.cax.set_visible(False) # Hide colour bar
+    cg.savefig(filename, format="png", dpi=250)
     #plt.show()

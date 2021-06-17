@@ -68,6 +68,7 @@ def run(args):
         print (AllAbabnehsMtx)
         # Print the three matrices to screen
 
+        print(f"Printing Clustermaps for all three tests...")
         MaskedHeatmap(AllBowkersMtx, f"{PathToInputAln}{count}_Bowkers.png")
         MaskedHeatmap(AllStuartsMtx, f"{PathToInputAln}{count}_Stuarts.png")
         MaskedHeatmap(AllAbabnehsMtx, f"{PathToInputAln}{count}_Ababnehs.png")
