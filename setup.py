@@ -27,7 +27,7 @@ setup(
         "seaborn >= 0.11",
         "matplotlib >= 3.4",
     ],
-    extras_requires = {
+    extras_require = {
         "dev": [
             "pytest == 6.2.4",
         ],
@@ -44,4 +44,9 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.8",
     ],
+
+
+    url = "https://github.com/LinCocoon/ProjectSRH",
+    author = "Lin Cocoon",
+    author_email = "xuenibian@gmail.com",
 )
