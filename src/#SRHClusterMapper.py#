@@ -1,21 +1,42 @@
-from functions import *
+
+
+# Description: Triggers entire project with functions contained in functions.py.
+
+
+#========================================================================
+
+
+# IMPORTS
+
+# Standard:
 import argparse
 import itertools
 from tqdm import tqdm
+
+# Third party:
 from scipy.cluster.hierarchy import ClusterWarning
 from warnings import simplefilter
 simplefilter("ignore", ClusterWarning)
-# Supresses warning re. X1 is too close to X1.T. Using sns.clustermap to make use of its ability to do map-permutations. It probably doesn't see that many symmetric matrices
+# Supresses warning re. X1 is too close to X1.T. Using sns.clustermap to make use of its ability to do map-permutations. It probably doesn't see that many symmetric matrices.
+
+# Local:
+from functions import *
+
+
+#========================================================================
+
+
+# MAIN BODY
 
 def run(args):
 
     PathToInputAln = args.i
     Partition = args.p
 
-    if Partition == False:
-        ListOfDicts = ReadSeq(PathToInputAln)
-    else:
+    if Partition:
         ListOfDicts = CodonSplitter(ReadSeq(PathToInputAln))
+    else:
+        ListOfDicts = ReadSeq(PathToInputAln)
 
     count=0
     for SeqDict in ListOfDicts:
@@ -33,7 +54,7 @@ def run(args):
         AllAbabnehs = []
 
         for pair in tqdm(AllPairs):
-            x,y = SeqDict[pair[0]], SeqDict[pair[1]]
+            x, y = SeqDict[pair[0]], SeqDict[pair[1]]
             m = DivergenceMtx(x, y)
             BowkersStat, BowkersDf = list(Bowkers(m))
             BowkersPval = pval(BowkersStat, BowkersDf)
@@ -72,6 +93,10 @@ def run(args):
         print(f"Three clustermaps of all pairwise scores have been written to {PathToInputAln}.")
         print('\n')
         # Save three heatmaps to where the input alignment is
+
+
+#========================================================================
+
 
 def main():
     parser = argparse.ArgumentParser(description='Use this to do SRH tests on an alignment')                                                    
