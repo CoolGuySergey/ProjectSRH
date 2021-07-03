@@ -37,13 +37,23 @@ def ReadSeq(path):
     Out: (1 item) Dictionary where keys are SeqIDs and items are Seqs.
     """
     
-    with open(path, "r") as filein:
-        fasta = [i.split('\n') for i in filein.read().strip().split('\n\n')]
-    SeqIDs = fasta[0][::2]
-    SeqsOriginalCases = fasta[0][1::2]
-    SeqsUpperCases = [each_string.upper() for each_string in SeqsOriginalCases]
+    try:
+        with open(str(path), "r") as filein:
+            fasta = [i.split('\n') for i in filein.read().strip().split('\n\n')]
+        SeqIDs = fasta[0][::2]
+        SeqsOriginalCases = fasta[0][1::2]
+        SeqsUpperCases = [each_string.upper() for each_string in SeqsOriginalCases]
+        assert set(SeqsUpperCases[0]).issubset(set("CGAT"))
+    
+    except FileNotFoundError:
+        print('Sorry, could not find file via the given relative path.')
+        raise
+    except AssertionError:
+        print('Sorry, alignment seems to contain amino acids.')
+        raise
 
-    return dict(zip(SeqIDs, SeqsUpperCases))
+    else:
+        return dict(zip(SeqIDs, SeqsUpperCases))
 
 
 def CodonSplitter(InputDict):
@@ -52,7 +62,8 @@ def CodonSplitter(InputDict):
     Partitions alignment into 1st/2nd/3rd codons.
     
     In: (1 item) Dictionary where keys are SeqIDs and items are Seqs.
-    Out: (3 items) Dictionaries where keys are SeqIDs and items are Seqs identified as 1st/2nd/3rd codons.
+    Out: (3 items) Dictionaries where keys are SeqIDs and items are Seqs
+    identified as 1st/2nd/3rd codons.
     """
     
     PosOne = [each_string[::3] for each_string in InputDict.values()]
@@ -103,7 +114,10 @@ def DivergenceMtx(x, y):
 def Bowkers(m):
     
     '''
-    MaxSym test/Bowker's test. If < 0.05, general symmetry is violated. Obtaining the data by chance under stationarity (assumption I) or global homogeneity (assumption III) is unlikely.
+    MaxSym test/Bowker's test. If < 0.05, general symmetry is violated.
+    Obtaining the data by chance under stationarity (assumption I) or
+    global homogeneity (assumption III) is unlikely.
+    
     n(n-1)/2 degrees of freedom, where n is the number of categories.
     
     In: (1 items) Divergence matrix, m.
@@ -166,7 +180,12 @@ def Bowkers(m):
 def Stuarts(m):
     
     '''
-    MaxSym_mar test/Stuartx's test for marginal symmetry. If < 0.05, marginal symmetry is violated. Obtaining the data by chance under stationarity (assumption I) is unlikely i.e. One of the four types of nucleotides is being substituted more than it is substituting other nucleotides.
+    MaxSym_mar test/Stuartx's test for marginal symmetry. If < 0.05,
+    marginal symmetry is violated. Obtaining the data by chance under
+    stationarity (assumption I) is unlikely i.e. One of the four types of
+    nucleotides is being substituted more than it is substituting other
+    nucleotides.
+
     n-1 degrees of freedom, where n is the number of categories
 
     In: (1 items) Divergence matrix, m.
@@ -217,8 +236,15 @@ def Stuarts(m):
 def Ababnehs(BowkersStat, BowkersDF, StuartsStat):
     
     '''
-    MaxSym_int test. The remaining of general symmetry breakage is attributable to breakage of internal symmetry. Ababneh's = Bowker's - Stuarts. < 0.05, there are changes in the relative substitution rates between the root-to-tip axis of the tree or between lineages. Obtaining the data by chance under global homogeneity (assumption III) is unlikely.
-    (n-1)(n-2)/2 degrees of freedom. n can't be assumed to be 6, so this is calculated by subtracting 3 from BowkersDf.
+    MaxSym_int test. The remaining of general symmetry breakage is
+    attributable to breakage of internal symmetry. Ababneh's = 
+    Bowker's - Stuarts. < 0.05, there are changes in the relative
+    substitution rates between the root-to-tip axis of the tree or
+    between lineages. Obtaining the data by chance under global
+    homogeneity (assumption III) is unlikely.
+    
+    (n-1)(n-2)/2 degrees of freedom. n can't be assumed to be 6, so this
+    is calculated by subtracting 3 from BowkersDf.
 
     In: (1 items) Divergence matrix, m.
     Out: (2 items) Ababnehs Stats as float.
@@ -266,7 +292,8 @@ def Broadcast2Matrix(statsstring, seqDict):
     Broadcast string of p-values to dataframe.
     
     In: (2 items) String of p-values, dictionary where keys are seqnames.
-    Out: (1 item) Pandas dataframe where cells are p-values and row/cols are seqnames.
+    Out: (1 item) Pandas dataframe where cells are p-values and row/cols 
+    seqnames.
     '''
     
     n = len(seqDict)
@@ -290,7 +317,7 @@ def Broadcast2Matrix(statsstring, seqDict):
 #          "d" : [score with e]
 
 
-def MaskedHeatmap (dataframe, filename):
+def MaskedHeatmap(dataframe, filename):
     
     '''
     Broadcast string of p-values to dataframe.

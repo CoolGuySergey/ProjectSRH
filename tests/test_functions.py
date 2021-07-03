@@ -1,8 +1,15 @@
+import pytest
 import functions
+#========================================================================
+# PREPROCESSING
 
 def test_ReadSeq():
-    assert functions.ReadSeq("example.fa")
+    assert functions.ReadSeq("Example.fa")
+    with pytest.raises(FileNotFoundError):
+        functions.ReadSeq("Null/or/Wrong/Path")
+    with pytest.raises(AssertionError):
+        functions.ReadSeq("AAExample.fa")
 
-def test_CodonSplitter():
-    ExampleDict = functions.ReadSeq("example.fa")
-    assert functions.CodonSplitter(ExampleDict)
+#========================================================================
+# SYMMETRY TESTS
+    

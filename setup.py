@@ -26,6 +26,7 @@ setup(
         "numpy >= 1.1",
         "seaborn >= 0.11",
         "matplotlib >= 3.4",
+        "biopython >= 1.7"
     ],
     extras_require = {
         "dev": [
