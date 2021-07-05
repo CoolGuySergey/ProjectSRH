@@ -38,14 +38,12 @@ def run(args):
     else:
         ListOfDicts = ReadSeq(PathToInputAln)
 
-    count=0
-    for SeqDict in ListOfDicts:
+    for DictName, SeqDict in enumerate(ListOfDicts):
         
-        count +=1
-        if Partition == False:
-            print(f"Performing all three tests on unpartitioned alignment")
+        if Partition:
+            print(f"Performing all three tests on codon{DictName+1}")
         else:
-            print(f"Performing all three tests on codon{count}")
+            print(f"Performing all three tests on unpartitioned alignment")
 
         AllPairs = list(itertools.combinations(SeqDict.keys(), 2))
 
@@ -81,15 +79,16 @@ def run(args):
         # Print the three matrices to screen
 
         print(f"Printing Clustermaps for all three tests...")
-        MaskedHeatmap(AllBowkersMtx, f"{PathToInputAln}{count}_Bowkers.png")
-        MaskedHeatmap(AllStuartsMtx, f"{PathToInputAln}{count}_Stuarts.png")
-        MaskedHeatmap(AllAbabnehsMtx, f"{PathToInputAln}{count}_Ababnehs.png")
+        MaskedHeatmap(AllBowkersMtx, f"{PathToInputAln}{DictName+1}_Bowkers.png")
+        MaskedHeatmap(AllStuartsMtx, f"{PathToInputAln}{DictName+1}_Stuarts.png")
+        MaskedHeatmap(AllAbabnehsMtx, f"{PathToInputAln}{DictName+1}_Ababnehs.png")
         print('\n')
 
-        if Partition == False:
-            print(f"All three tests complete for unpartitioned alignment.")
+        if Partition:
+            print(f"All three tests complete for partition {DictName+1} of alignment.")
         else:
-            print(f"All three tests complete for partition {count} of alignment.")
+            print(f"All three tests complete for unpartitioned alignment.")
+        
         print(f"Three clustermaps of all pairwise scores have been written to {PathToInputAln}.")
         print('\n')
         # Save three heatmaps to where the input alignment is

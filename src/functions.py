@@ -11,6 +11,7 @@
 # Standard:
 import itertools as ite
 import math
+import os
 
 # Third party:
 import numpy as np
@@ -36,24 +37,21 @@ def ReadSeq(path):
     In: (1 item) String where string contains relative path to fasta.
     Out: (1 item) Dictionary where keys are SeqIDs and items are Seqs.
     """
-    
-    try:
-        with open(str(path), "r") as filein:
-            fasta = [i.split('\n') for i in filein.read().strip().split('\n\n')]
-        SeqIDs = fasta[0][::2]
-        SeqsOriginalCases = fasta[0][1::2]
-        SeqsUpperCases = [each_string.upper() for each_string in SeqsOriginalCases]
-        assert set(SeqsUpperCases[0]).issubset(set("CGAT"))
-    
-    except FileNotFoundError:
-        print('Sorry, could not find file via the given relative path.')
-        raise
-    except AssertionError:
-        print('Sorry, alignment seems to contain amino acids.')
-        raise
 
-    else:
-        return dict(zip(SeqIDs, SeqsUpperCases))
+    with open(str(path), "r") as filein:
+        fasta = [i.split('\n') for i in filein.read().strip().split('\n\n')]
+    SeqIDs = fasta[0][::2]
+    SeqsOriginalCases = fasta[0][1::2]
+    SeqsUpperCases = [each_string.upper() for each_string in SeqsOriginalCases]
+
+    if SeqIDs[1].startswith('>') == False:
+        raise IndexError("""Sorry. Fasta sequence needs to be unwrapped first, try the following in your command line:
+        awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);}  END {printf("\n");}' < yourinput.fa > youroutput.fa
+        """)
+    if not set(SeqsUpperCases[0]).issubset(set("CGAT-")):
+        raise ValueError('Sorry. Alignment seems to contain amino acids.')
+
+    return dict(zip(SeqIDs, SeqsUpperCases))
 
 
 def CodonSplitter(InputDict):
@@ -94,6 +92,8 @@ def DivergenceMtx(x, y):
     In: (2 items) Strings where each string is seq in seq-pair.
     Out: (1 item) 4*4 numpy array representing divergence matrix, m.
     '''
+    if x==y:
+        raise ValueError("Sorry. Caught duplicate sequences.")
     
     x = np.array(list(x))
     y = np.array(list(y))
@@ -101,12 +101,16 @@ def DivergenceMtx(x, y):
     
     ax = (x[:, None] == a[None, :]).astype(int)
     ay = (y[:, None] == a[None, :]).astype(int)
+    
     # array[:, None] smears array vertically
     # the other way round smears array horizontally
     # i.e. ax and ay will be 4 col wide and as tall as your seq is long
     # i.e. ax and ay  essentially represent the seq in a one-hot matrix
+
+    FinalMatrix = np.dot(ay.T, ax)
+    # len*4.T into len*4 = 4*len into len*4
     
-    return np.dot(ay.T, ax) # len*4.T into len*4 = 4*len into len*4
+    return FinalMatrix
 
 
 # First of three tests.
