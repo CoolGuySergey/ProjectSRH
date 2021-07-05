@@ -44,6 +44,7 @@ def run(args):
             print(f"Performing all three tests on codon{DictName+1}")
         else:
             print(f"Performing all three tests on unpartitioned alignment")
+            SeqDict = ListOfDicts
 
         AllPairs = list(itertools.combinations(SeqDict.keys(), 2))
 
