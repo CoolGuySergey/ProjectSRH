@@ -40,6 +40,7 @@ def run(args):
     for DictName, SeqDict in enumerate(ListOfDicts):
         
         if Partition:
+            print('\n')
             print(f"Performing all three tests on codon{DictName+1}")
         else:
             print(f"Performing all three tests on unpartitioned alignment")
@@ -68,14 +69,16 @@ def run(args):
         AllStuartsMtx = Broadcast2Matrix(AllStuarts, SeqDict)
         AllAbabnehsMtx = Broadcast2Matrix(AllAbabnehs, SeqDict)
 
+        print('\n')
         print("All Bowkers/Maximal symmetry stats:")
         print(AllBowkersMtx)
-        print('\n\n')
+        print('\n')
         print("All Stuarts/Marginal symmetry stats:")
         print(AllStuartsMtx)
-        print('\n\n')
+        print('\n')
         print("All Ababneh/Internal symmetry stats:")
         print(AllAbabnehsMtx)
+        print('\n')
         # Print the three matrices to screen
 
         if Alpha == 0:
@@ -93,12 +96,29 @@ def run(args):
 
         if Partition:
             print(f"All three tests complete for partition {DictName+1} of alignment.")
+            print('\n')
         else:
             print(f"All three tests complete for unpartitioned alignment.")
+            print('\n')
         
         print(f"Three clustermaps of all pairwise scores have been written to {PathToInputAln}.")
         print('\n')
+        print("="*79)
         # Save three heatmaps to where the input alignment is
+
+        if not Partition:
+            break
+        # loop over single dict while keeping enumerate() for paritioning
+
+#========================================================================
+
+
+# WARNING FILTERS
+
+simplefilter("ignore", ClusterWarning)
+# Supresses warning re. X1 is too close to X1.T. Using sns.clustermap to make use of its ability to do map-permutations. It probably doesn't see that many symmetric matrices.
+simplefilter("ignore", UserWarning)
+# Supresses warnig re. max y and min y values being same for the data series.
 
 
 #========================================================================
@@ -123,14 +143,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-#========================================================================
-
-
-# WARNING FILTERS
-
-simplefilter("ignore", ClusterWarning)
-# Supresses warning re. X1 is too close to X1.T. Using sns.clustermap to make use of its ability to do map-permutations. It probably doesn't see that many symmetric matrices.
-simplefilter("ignore", UserWarning)
-# Supresses warnig re. max y and min y values being same for the data series.

@@ -300,7 +300,6 @@ def SequentialBonferroni(StatsList):
     """
     
     StatsList = sorted(StatsList)
-    print(StatsList)
 
     Rank = 0
     while StatsList[Rank] < (0.05 / (len(StatsList) - Rank)):
