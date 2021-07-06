@@ -16,8 +16,6 @@ from tqdm import tqdm
 # Third party:
 from scipy.cluster.hierarchy import ClusterWarning
 from warnings import simplefilter
-simplefilter("ignore", ClusterWarning)
-# Supresses warning re. X1 is too close to X1.T. Using sns.clustermap to make use of its ability to do map-permutations. It probably doesn't see that many symmetric matrices.
 
 # Local:
 from functions import *
@@ -32,6 +30,7 @@ def run(args):
 
     PathToInputAln = args.i
     Partition = args.p
+    Alpha = args.a
 
     if Partition:
         ListOfDicts = CodonSplitter(ReadSeq(PathToInputAln))
@@ -69,20 +68,27 @@ def run(args):
         AllStuartsMtx = Broadcast2Matrix(AllStuarts, SeqDict)
         AllAbabnehsMtx = Broadcast2Matrix(AllAbabnehs, SeqDict)
 
-        print("All Bowkers stats/Maximal symmetry stats for:")
-        print (AllBowkersMtx)
+        print("All Bowkers/Maximal symmetry stats:")
+        print(AllBowkersMtx)
         print('\n\n')
         print("All Stuarts/Marginal symmetry stats:")
-        print (AllStuartsMtx)
+        print(AllStuartsMtx)
         print('\n\n')
         print("All Ababneh/Internal symmetry stats:")
-        print (AllAbabnehsMtx)
+        print(AllAbabnehsMtx)
         # Print the three matrices to screen
 
+        if Alpha == 0:
+            BowkersAlpha = SequentialBonferroni(AllBowkers)
+            StuartsAlpha = SequentialBonferroni(AllStuarts)
+            AbabnehsAlpha = SequentialBonferroni(AllAbabnehs)
+        else:
+            BowkersAlpha = StuartsAlpha = AbabnehsAlpha = Alpha
+
         print(f"Printing Clustermaps for all three tests...")
-        MaskedHeatmap(AllBowkersMtx, f"{PathToInputAln}{DictName+1}_Bowkers.png")
-        MaskedHeatmap(AllStuartsMtx, f"{PathToInputAln}{DictName+1}_Stuarts.png")
-        MaskedHeatmap(AllAbabnehsMtx, f"{PathToInputAln}{DictName+1}_Ababnehs.png")
+        MaskedHeatmap(AllBowkersMtx, BowkersAlpha, f"{PathToInputAln}Codon{DictName+1}_Bowkers.png")
+        MaskedHeatmap(AllStuartsMtx, StuartsAlpha, f"{PathToInputAln}Codon{DictName+1}_Stuarts.png")
+        MaskedHeatmap(AllAbabnehsMtx, AbabnehsAlpha, f"{PathToInputAln}Codon{DictName+1}_Ababnehs.png")
         print('\n')
 
         if Partition:
@@ -99,12 +105,32 @@ def run(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Use this to do SRH tests on an alignment')                                                    
-    parser.add_argument("-i", help="Relative path of input alignment", required=True, dest="i", type=str)
-    parser.add_argument("-p", help="If True, SRHClusterMapper will partition input data into three codon positions and perform SRH tests on them separately. Defaults to False.", default=False, dest="p", type=bool)
+    
+    parser = argparse.ArgumentParser(description='Use this to perform SRH tests on an alignment.')
+    
+    parser.add_argument("-input", help="Relative path of input alignment", required=True, dest="i", type=str)
+    
+    parser.add_argument("-partition", help="If True, SRHClusterMapper will partition input data into three codon positions and perform SRH tests on them separately. Defaults to False.", default=False, dest="p", type=bool)
+    
+    parser.add_argument("-alpha", help="Significance value. If given a custom/arbitrary value (e.g. 0.05), SRHClusterMapper will not perform Sequential Bonferroni correction. By default behaviour, Sequential Bonferroni correction will be performed to seek a significance value lower than 0.05. i.e. Leaving this option to default  will result in more sequences passing the symmetry tests.", default=0, dest="a", type=float)
+    
     parser.set_defaults(func=run)
+    
     args=parser.parse_args()
+    
     args.func(args)
+
 
 if __name__ == '__main__':
     main()
+
+
+#========================================================================
+
+
+# WARNING FILTERS
+
+simplefilter("ignore", ClusterWarning)
+# Supresses warning re. X1 is too close to X1.T. Using sns.clustermap to make use of its ability to do map-permutations. It probably doesn't see that many symmetric matrices.
+simplefilter("ignore", UserWarning)
+# Supresses warnig re. max y and min y values being same for the data series.

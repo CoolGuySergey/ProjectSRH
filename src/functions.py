@@ -92,7 +92,7 @@ def DivergenceMtx(x, y):
     In: (2 items) Strings where each string is seq in seq-pair.
     Out: (1 item) 4*4 numpy array representing divergence matrix, m.
     '''
-    if x==y:
+    if x == y:
         raise ValueError("Sorry. Caught duplicate sequences.")
     
     x = np.array(list(x))
@@ -290,27 +290,46 @@ def pval(s, df):
 # Funcitons for building heatmap out of dataframe and threshold alpha
 
 
-def Broadcast2Matrix(statsstring, seqDict):
+def SequentialBonferroni(StatsList):
+    
+    """
+    Seeks appropriate significance level from multiple p-values.
+    
+    In: (1 item) List of p-values.
+    Out: (1 item) Float representing largest of the signficant p-values.
+    """
+    
+    StatsList = sorted(StatsList)
+    print(StatsList)
+
+    Rank = 0
+    while StatsList[Rank] < (0.05 / (len(StatsList) - Rank)):
+        Rank += 1
+
+    return StatsList[Rank-1]
+
+
+def Broadcast2Matrix(StatsList, SeqDict):
     
     '''
     Broadcast string of p-values to dataframe.
     
-    In: (2 items) String of p-values, dictionary where keys are seqnames.
+    In: (2 items) List of p-values, dictionary where keys are seqnames.
     Out: (1 item) Pandas dataframe where cells are p-values and row/cols 
     seqnames.
     '''
     
-    n = len(seqDict)
+    n = len(SeqDict)
     mat = np.eye(n) # create n*n zero matrix
     iuu = np.triu_indices(n, 1) # 1 to exlude main diagonal
-    mat[iuu] = statsstring # project string to upper triangular
+    mat[iuu] = StatsList # project string to upper triangular
 
     mat = mat + mat.T - np.diag(np.diag(mat))
     # Project to lower triangular by adding the transpose and
     # subtracting the diagonal. Will be faster albeit less readable.  
     
-    df = pd.DataFrame(mat,columns=seqDict.keys())
-    df.index = seqDict.keys()
+    df = pd.DataFrame(mat, columns=SeqDict.keys())
+    df.index = SeqDict.keys()
     return df
 
 # for sequences a,b,c,d,e
@@ -321,18 +340,16 @@ def Broadcast2Matrix(statsstring, seqDict):
 #          "d" : [score with e]
 
 
-def MaskedHeatmap(dataframe, filename):
+def MaskedHeatmap(dataframe, Alpha, filename):
     
     '''
     Broadcast string of p-values to dataframe.
     
-    In: (2 items) Dataframe to visualise, filename of png image.
+    In: (3 items) Dataframe to visualise, filename of png image, significance level alpha.
     Out: (1 item) png image saved to working directory.
     '''
     
-    alpha = 0.05 # uncorrected alpha level. No Bonferroni correction yet
-
-    boolean = dataframe < alpha
+    boolean = dataframe < Alpha
     
     cmap = sns.diverging_palette(240,10,n=2)
     cg = sns.clustermap(boolean, cmap=cmap, yticklabels=1, xticklabels=1)
