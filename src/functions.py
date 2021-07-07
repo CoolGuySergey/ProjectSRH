@@ -355,6 +355,14 @@ def MaskedHeatmap(dataframe, Alpha, filename):
     cg.ax_heatmap.set_xticklabels(cg.ax_heatmap.get_xmajorticklabels(), fontsize=3)
     cg.ax_heatmap.set_yticklabels(cg.ax_heatmap.get_ymajorticklabels(), fontsize=3)
 
+    # TRY: adding a suborder column to df then categorising rows with
+    # species_colors = df.suborder.map({
+    #     'whatever1' : 'blue;,
+    #     'whatever2' : 'red',
+    #     'whatever3' : 'green',
+    # })
+    # sns.clustermap( ... , row_colors=suborder_colors)
+
     cg.ax_row_dendrogram.set_visible(False) # Hide 'trees'
     cg.ax_col_dendrogram.set_visible(False) # Hide 'trees'
     cg.cax.set_visible(False) # Hide colour bar
