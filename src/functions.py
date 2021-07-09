@@ -352,8 +352,6 @@ def MaskedHeatmap(dataframe, Alpha, filename):
     
     cmap = sns.diverging_palette(240,10,n=2)
     cg = sns.clustermap(boolean, cmap=cmap, yticklabels=1, xticklabels=1)
-    cg.ax_heatmap.set_xticklabels(cg.ax_heatmap.get_xmajorticklabels(), fontsize=3)
-    cg.ax_heatmap.set_yticklabels(cg.ax_heatmap.get_ymajorticklabels(), fontsize=3)
 
     # TRY: adding a suborder column to df then categorising rows with
     # species_colors = df.suborder.map({
@@ -363,6 +361,9 @@ def MaskedHeatmap(dataframe, Alpha, filename):
     # })
     # sns.clustermap( ... , row_colors=suborder_colors)
 
+    # Aesthetics:
+    cg.ax_heatmap.set_xticklabels(cg.ax_heatmap.get_xmajorticklabels(), fontsize=3)
+    cg.ax_heatmap.set_yticklabels(cg.ax_heatmap.get_ymajorticklabels(), fontsize=3)
     cg.ax_row_dendrogram.set_visible(False) # Hide 'trees'
     cg.ax_col_dendrogram.set_visible(False) # Hide 'trees'
     cg.cax.set_visible(False) # Hide colour bar

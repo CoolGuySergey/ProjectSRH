@@ -69,6 +69,19 @@ def test_DataVisualisation():
     test = [0.13, 1e-05, 0.003, 0.05, 0.00099, 0.06, 0.035]
     assert SequentialBonferroni(test) == 0.003
 
+        # For the list of test PVals, the first three are significant,
+    # as PVal < Bonferroni corrected PVal
+    
+    # PVal   	test	inverse	      Bonferroni corrected PVal
+    # 0.00001	1	7	      0.05/7 = 0.007143
+    # 0.00099	2	6	      0.05/6 = 0.00833
+    # 0.00300	3	5	      0.05/5 = 0.01
+    # ---------------------------------------------------------
+    # 0.03500	4	4	      0.05/4 = 0.0125
+    # 0.05000	5	3	      0.05/3 = 0.016667
+    # 0.06000	6	2	      0.05/2 = 0.025
+    # 0.13000	7	1	      0.05/1 = 0.05
+
     ExDict = ReadSeq("RealExample.fa")
     AllPairs = list(combinations(ExDict.keys(), 2))
     AllBowkers = []
@@ -82,14 +95,11 @@ def test_DataVisualisation():
     assert len(Broadcast2Matrix(AllBowkers, ExDict)) == 4
     assert (Broadcast2Matrix(AllBowkers, ExDict)).isnull().values.any() == False
 
-    # the first three are significant, as PVal < Bonferroni corrected PVal
-    
-    # PVal   	test	inverse	      Bonferroni corrected PVal	
-    # 0.00001	1	7		0.05/7=0.007143
-    # 0.00099	2	6		0.05/6=0.00833
-    # 0.00300	3	5		0.05/5=0.01
-    #-----------------------------------------------------
-    # 0.03500	4	4		0.05/4=0.0125
-    # 0.05000	5	3		0.05/3=0.016667
-    # 0.06000	6	2		0.05/2=0.025
-    # 0.13000	7	1		0.05/1=0.05
+    dataframe = Broadcast2Matrix(AllBowkers, ExDict)
+    Alpha = SequentialBonferroni(AllBowkers)
+    boolean = dataframe < Alpha
+    cmap = sns.diverging_palette(240,10,n=2)
+    cg = sns.clustermap(boolean, cmap=cmap, yticklabels=1, xticklabels=1)
+
+    # It's surprisingly difficult to eyeball...
+    # but seq1 & seq3 form a cluster, seq2 & seq4 form a cluster
