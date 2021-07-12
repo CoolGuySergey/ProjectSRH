@@ -254,7 +254,7 @@ def Ababnehs(BowkersStat, BowkersDF, StuartsStat):
     Out: (2 items) Ababnehs Stats as float.
     '''
 
-    if isinstance(BowkersStat,float) and isinstance(StuartsStat, float) == True:
+    if isinstance(BowkersStat,float) and isinstance(StuartsStat, float):
         if (BowkersDF > 3):
             s = BowkersStat - StuartsStat
         else:
