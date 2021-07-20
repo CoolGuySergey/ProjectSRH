@@ -52,9 +52,21 @@ def run(args):
         AllStuarts = []
         AllAbabnehs = []
 
+        paircount = 0
         for pair in tqdm(AllPairs):
+            paircount += 1
+            print(paircount)
             x, y = SeqDict[pair[0]], SeqDict[pair[1]]
             m = DivergenceMtx(x, y)
+            
+            if np.all(m==0):
+                print(x)
+                print(y)
+                AllBowkers.append(np.nan)
+                AllStuarts.append(np.nan)
+                AllAbabnehs.append(np.nan)
+                continue
+                
             BowkersStat, BowkersDf = list(Bowkers(m))
             BowkersPval = pval(BowkersStat, BowkersDf)
             StuartsStat, StuartsDf = Stuarts(m), 3

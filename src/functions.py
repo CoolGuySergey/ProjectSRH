@@ -32,9 +32,9 @@ import matplotlib.pyplot as plt
 def ReadSeq(path):
 
     """
-    Reads in fasta file.
+    Reads in alignment as fasta file.
     
-    In: (1 item) String where string contains relative path to fasta.
+    In: (1 item) String where string contains relative path to alignment/fasta.
     Out: (1 item) Dictionary where keys are SeqIDs and items are Seqs.
     """
 
@@ -193,7 +193,7 @@ def Stuarts(m):
     n-1 degrees of freedom, where n is the number of categories
 
     In: (1 items) Divergence matrix, m.
-    Out: (2 items) Stuarts Stats as float.
+    Out: (1 items) Stuarts Stats as float.
     '''
     
     # Stuart's test statistics = u.T * V^-1 * u
@@ -251,7 +251,7 @@ def Ababnehs(BowkersStat, BowkersDF, StuartsStat):
     is calculated by subtracting 3 from BowkersDf.
 
     In: (1 items) Divergence matrix, m.
-    Out: (2 items) Ababnehs Stats as float.
+    Out: (1 items) Ababnehs Stats as float.
     '''
 
     if isinstance(BowkersStat,float) and isinstance(StuartsStat, float):
