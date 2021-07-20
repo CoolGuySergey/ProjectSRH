@@ -52,22 +52,32 @@ def run(args):
         AllStuarts = []
         AllAbabnehs = []
 
-        paircount = 0
+        #paircount = 0
+        nancount = 0
         for pair in tqdm(AllPairs):
-            paircount += 1
-            print(paircount)
+            #paircount += 1
+            #print(paircount)
+            
             x, y = SeqDict[pair[0]], SeqDict[pair[1]]
             m = DivergenceMtx(x, y)
             
-            if np.all(m==0):
-                print(x)
-                print(y)
+            if np.all(m[np.triu_indices(4, 1)] == 0):
+                print("Encountered pair with all-zero off-diagonals")
+                nancount +=1
+                print(f"Invalid-pairs count: {nancount}")
                 AllBowkers.append(np.nan)
                 AllStuarts.append(np.nan)
                 AllAbabnehs.append(np.nan)
                 continue
-                
+
+            #print("="*30)
+            #print(x)
+            #print("-"*30)
+            #print(y)
+            
             BowkersStat, BowkersDf = list(Bowkers(m))
+            
+                
             BowkersPval = pval(BowkersStat, BowkersDf)
             StuartsStat, StuartsDf = Stuarts(m), 3
             StuartsPval = pval(StuartsStat, StuartsDf)

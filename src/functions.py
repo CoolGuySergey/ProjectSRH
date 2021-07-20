@@ -37,7 +37,7 @@ def ReadSeq(path):
     In: (1 item) String where string contains relative path to alignment/fasta.
     Out: (1 item) Dictionary where keys are SeqIDs and items are Seqs.
     """
-
+    
     with open(str(path), "r") as filein:
         fasta = [i.split('\n') for i in filein.read().strip().split('\n\n')]
     SeqIDs = fasta[0][::2]
