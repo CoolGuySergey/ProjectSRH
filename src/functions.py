@@ -192,8 +192,8 @@ def Stuarts(m):
 
     n-1 degrees of freedom, where n is the number of categories
 
-    In: (1 items) Divergence matrix, m.
-    Out: (1 items) Stuarts Stats as float.
+    In: (1 item) Divergence matrix, m.
+    Out: (1 item) Stuarts Stats as float.
     '''
     
     # Stuart's test statistics = u.T * V^-1 * u
@@ -250,8 +250,8 @@ def Ababnehs(BowkersStat, BowkersDF, StuartsStat):
     (n-1)(n-2)/2 degrees of freedom. n can't be assumed to be 6, so this
     is calculated by subtracting 3 from BowkersDf.
 
-    In: (1 items) Divergence matrix, m.
-    Out: (1 items) Ababnehs Stats as float.
+    In: (1 item) Divergence matrix, m.
+    Out: (1 item) Ababnehs Stats as float.
     '''
 
     if isinstance(BowkersStat,float) and isinstance(StuartsStat, float):
@@ -362,10 +362,10 @@ def MaskedHeatmap(dataframe, Alpha, filename):
     # sns.clustermap( ... , row_colors=suborder_colors)
 
     # Aesthetics:
-    cg.ax_heatmap.set_xticklabels(cg.ax_heatmap.get_xmajorticklabels(), fontsize=3)
-    cg.ax_heatmap.set_yticklabels(cg.ax_heatmap.get_ymajorticklabels(), fontsize=3)
+    cg.ax_heatmap.set_xticklabels(cg.ax_heatmap.get_xmajorticklabels(), fontsize=1)
+    cg.ax_heatmap.set_yticklabels(cg.ax_heatmap.get_ymajorticklabels(), fontsize=1)
     cg.ax_row_dendrogram.set_visible(False) # Hide 'trees'
     cg.ax_col_dendrogram.set_visible(False) # Hide 'trees'
     cg.cax.set_visible(False) # Hide colour bar
-    cg.savefig(filename, format="png", dpi=250)
+    cg.savefig(filename, format="png", dpi=750)
     #plt.show()
