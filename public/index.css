@@ -1,0 +1,25 @@
+#floatleft{
+    width: 400px;
+    padding: 10px;
+    float: left;
+}
+
+#floatright{
+    width: 400px;
+    padding: 10px;
+    float: right;
+}
+
+#form label{
+    display: block;
+}
+
+#form input{
+    display: block;
+    font-family: JetBrains Mono, Space Mono, monospace;
+}
+
+#form select{
+    display: block;
+    font-family: JetBrains Mono, Space Mono, monospace;
+}
