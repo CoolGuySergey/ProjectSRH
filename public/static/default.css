@@ -1,0 +1,68 @@
+/* Body > Container > Header + Main + Footer */
+
+
+body{
+    background-color: #0E2433;
+    color: #e8ffff;
+    font-family: JetBrains Mono, Space Mono, monospace;
+    line-height: 1.5em
+}
+
+
+#container{
+    width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+header{
+    text-align: center;
+}
+
+
+.flash, .error{
+    background: red;
+    color: #e8ffff;
+    text-align: center;
+}
+
+
+main{
+    padding: 20px;
+}
+
+
+a{
+    color: #e8ffff;
+    text-decoration: none;
+}
+
+
+.button{
+    background-color: #e8ffff;
+    color: #0E2433;
+    border: none;
+    font-family: JetBrains Mono, Space Mono, monospace;
+    line-height: 1.5em;
+    transition: all 0.5s;
+}
+
+
+.button:hover{
+    background-color: #0E2433;
+    color: #e8ffff;
+    border: none;
+    cursor:pointer;
+}
+
+
+footer{
+    text-align: center;
+    padding: 40px;
+    clear: both;
+}
+
+svg{
+    padding: 0px 5px 0px 5px;
+}

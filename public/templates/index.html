@@ -1,0 +1,60 @@
+{% extends "template.html" %}
+{% block content %}
+
+<main>
+  
+  <p>Fasta alignments and Nucleotide alignments only.</p>
+  
+  <div id="floatleft">
+    
+    <table>
+      <thead>
+	<tr>
+	  <th>Test name</th>
+	  <th>Tests for...</th>
+	  <th>Meaning...</th>
+	</tr>
+      </thead>
+      <tbody>
+	<tr>
+	  <td>Bowkers</td>
+	  <td>Maximal Symmetry</td>
+	  <td>asdfgh</td>
+	</tr>
+	<tr>
+	  <td>Stuarts</td>
+	  <td>Marginal Symmetry</td>
+	  <td>asdfgh</td>
+	</tr>
+	<tr>
+	  <td>Ababnehs</td>
+	  <td>Internal Symmetry</td>
+	  <td>asdfgh</td>
+	</tr>
+      </tbody>
+    </table><br/>
+
+    <form action="{{ url_for('results') }}" enctype="multipart/form-data" method="post" id="form">
+      <label for="PathToInputAln">Upload input alignment:</label>
+      <input type="file" name="PathToInputAln" accept=".fasta,.fa"><br>
+      <label>Codon Partitioning:</label>
+      <select name="Partition">
+	<option value="True">On</option>
+	<option value="False">Off</option>
+      </select><br>
+      <label>Significance Value*:</label>
+      <input type="number" name="Alpha" value="0.05"><br>
+      <input type="submit" class="button">
+    </form><br>
+
+    <p>*If given a custom/arbitrary value (e.g. 0.05), SRHClusterMapper <em>will not</em> perform Sequential Bonferroni correction. By default behaviour, Sequential Bonferroni correction will be performed to seek a significance value lower than 0.05. i.e. Leaving this option to default will result in more sequences passing the symmetry tests.</p>
+
+  </div>
+
+  <div id="floatright">
+    <p>This floats right</p>
+  </div>
+
+</main>
+
+{% endblock %}

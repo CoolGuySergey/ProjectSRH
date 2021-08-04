@@ -70,11 +70,6 @@ def run(args):
                 AllAbabnehs.append(np.nan)
                 continue
 
-            #print("="*30)
-            #print(x)
-            #print("-"*30)
-            #print(y)
-            
             BowkersStat, BowkersDf = list(Bowkers(m))
             
                 
@@ -151,8 +146,18 @@ def main():
     parser = argparse.ArgumentParser(description='Use this to perform SRH tests on an alignment.')
     
     parser.add_argument("-input", help="Relative path of input alignment", required=True, dest="i", type=str)
+
+    def str2bool(v):
+        if isinstance(v, bool):
+            return v
+        if v.lower() in ('yes', 'true', 't', 'y', '1'):
+            return True
+        elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+            return False
+        else:
+            raise argparse.ArgumentTypeError('Boolean value expected.')
     
-    parser.add_argument("-partition", help="If True, SRHClusterMapper will partition input data into three codon positions and perform SRH tests on them separately. Defaults to False.", default=False, dest="p", type=bool)
+    parser.add_argument("-partition", help="If true, SRHClusterMapper will partition input data into three codon positions and perform SRH tests on them separately. Defaults to False.", type=str2bool, default=False, dest="p")
     
     parser.add_argument("-alpha", help="Significance value. If given a custom/arbitrary value (e.g. 0.05), SRHClusterMapper will not perform Sequential Bonferroni correction. By default behaviour, Sequential Bonferroni correction will be performed to seek a significance value lower than 0.05. i.e. Leaving this option to default  will result in more sequences passing the symmetry tests.", default=0, dest="a", type=float)
     
