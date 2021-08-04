@@ -26,7 +26,6 @@ import SRHClusterMapper
 MAX_CONTENT_LENGTH = 1024 * 1024
 # Maximum size a request body can have is 1MB
 # Requests that are larger than this are discarded with a 413 status code.
-UPLOAD_PATH = 'uploads'
 
 # Create application object
 app = Flask(__name__)
@@ -51,29 +50,40 @@ def index():
     status_code = 200
     return render_template("index.html", error=error), status_code
 
-
-@app.route("/results", methods=["POST"])
-def results():
-
+@app.route("/", methods=["POST"])
+def upload():
+    
     UploadedFile = request.files['PathToInputAln']
     if UploadedFile.filename != '':
         UploadedFile.save("uploads/TempFileIn")
-    # UploadedFile is instance of class FileStorage
-    # Review and validate submission before writing to current directory
-    # Secure upload handling: ignore client-provided filename before passing to  save(). 
-     
-    class CreateArgs:
-        i = "uploads/TempFileIn"
-        p = request.form['Partition']
-        a = float(request.form['Alpha']
 
-    args = CreateArgs()
-    SRHClusterMapper.run(args)
+        class ArgsClass:
+            i = "uploads/TempFileIn"
+            p = request.form['Partition']
+            a = float(request.form['Alpha'])
+
+        args = ArgsClass()
+        args.p = SRHClusterMapper.str2bool(args.p)
+        
+        SRHClusterMapper.run(args)
+        
+        return render_template("results.html", Alpha=args.a, Partition=args.p, PathToInputAln=args.i)
+
+    else:
+        error = "Please provide an alignment."
+        status_code = 401
+        
+    return render_template("index.html", error=error), status_code
+
+
+@app.route("/results", methods=["POST"])
+def results():
     
     # TempFileIn* mop up all output pngs in the current dir (except the FileIn itself in uploads)
+    
     maps = ["Heatmap1", "Heatmap2", "Heatmap3"]
     
-    return render_template("results.html", maps=maps, Alpha=args.a, Partition=args.p, PathToInputAln=args.i)
+    return render_template("results.html", maps=maps)
     # Passes variable posts to main.html
 
 

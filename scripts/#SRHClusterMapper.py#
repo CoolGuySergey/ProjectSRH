@@ -35,7 +35,7 @@ def run(args):
     if Partition:
         ListOfDicts = CodonSplitter(ReadSeq(PathToInputAln))
     else:
-        ListOfDicts = ReadSeq(PathToInputAln)
+        ListOfDifcts = ReadSeq(PathToInputAln)
 
     for DictName, SeqDict in enumerate(ListOfDicts):
         

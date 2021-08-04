@@ -20,6 +20,13 @@ from scipy.stats import chi2
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')
+
+# Matplotlib is not thread-safe: in fact
+# Threads must be set up the proper locks to serialize access to Matplotlib artists.
+# Agg (non-interactive backend) so that one can work on separate figures from separate threads
+# most GUI backends require being run from the main thread as well
 
 
 #========================================================================
@@ -28,7 +35,6 @@ import matplotlib.pyplot as plt
 # PREPROCESSING
 # Functions for reading input alignment
 # Functions for partitioning
-
 
 def ReadSeq(path):
 
@@ -363,10 +369,10 @@ def MaskedHeatmap(dataframe, Alpha, filename):
     # sns.clustermap( ... , row_colors=suborder_colors)
 
     # Aesthetics:
-    cg.ax_heatmap.set_xticklabels(cg.ax_heatmap.get_xmajorticklabels(), fontsize=1)
-    cg.ax_heatmap.set_yticklabels(cg.ax_heatmap.get_ymajorticklabels(), fontsize=1)
+    cg.ax_heatmap.set_xticklabels(cg.ax_heatmap.get_xmajorticklabels(), fontsize=12)
+    cg.ax_heatmap.set_yticklabels(cg.ax_heatmap.get_ymajorticklabels(), fontsize=12)
     cg.ax_row_dendrogram.set_visible(False) # Hide 'trees'
     cg.ax_col_dendrogram.set_visible(False) # Hide 'trees'
     cg.cax.set_visible(False) # Hide colour bar
-    cg.savefig(filename, format="png", dpi=750)
+    cg.savefig(filename, format="png", dpi=350)
     #plt.show()
