@@ -5,9 +5,11 @@
 
 #------------------------------------------------------------------------
 
+
 # Standard:
 import sys
 import os
+import shutil
 
 # External:
 from flask import Flask, render_template, request, session, flash, redirect, url_for, g
@@ -19,11 +21,13 @@ from flask import Flask, render_template, request, session, flash, redirect, url
 sys.path.insert(1, '../scripts/')
 import SRHClusterMapper
 
+
 #------------------------------------------------------------------------
 
 
 # Configuration
 MAX_CONTENT_LENGTH = 1024 * 1024
+SECRET_KEY = os.urandom(5)
 # Maximum size a request body can have is 1MB
 # Requests that are larger than this are discarded with a 413 status code.
 
@@ -50,15 +54,28 @@ def index():
     status_code = 200
     return render_template("index.html", error=error), status_code
 
+
+#------------------------------------------------------------------------
+
+
 @app.route("/", methods=["POST"])
 def upload():
     
     UploadedFile = request.files['PathToInputAln']
     if UploadedFile.filename != '':
-        UploadedFile.save("uploads/TempFileIn")
+
+        session["UserID"] = os.urandom(5).decode('latin1')
+        UserDirPath = os.path.join("static/uploads", str(session["UserID"]))
+        # os.path.join returns str type
+        # Path: static/uploads/Òa;rO/
+        
+        os.mkdir(UserDirPath)
+        InputPath = os.path.join(UserDirPath, "TempFileIn")
+        UploadedFile.save(InputPath)
+        # makes dir with path static/uploads/Òa;rO/ and saves TempFileIn
 
         class ArgsClass:
-            i = "uploads/TempFileIn"
+            i = InputPath
             p = request.form['Partition']
             a = float(request.form['Alpha'])
 
@@ -66,8 +83,10 @@ def upload():
         args.p = SRHClusterMapper.str2bool(args.p)
         
         SRHClusterMapper.run(args)
-        
-        return render_template("results.html", Alpha=args.a, Partition=args.p, PathToInputAln=args.i)
+
+        os.remove(InputPath)
+
+        return redirect(url_for("results", Partition=args.p, Alpha=args.a, UserDirPath=UserDirPath))
 
     else:
         error = "Please provide an alignment."
@@ -76,15 +95,30 @@ def upload():
     return render_template("index.html", error=error), status_code
 
 
-@app.route("/results", methods=["POST"])
+#------------------------------------------------------------------------
+
+
+@app.route("/results")
 def results():
     
-    # TempFileIn* mop up all output pngs in the current dir (except the FileIn itself in uploads)
+    UserDirPath = request.args.get("UserDirPath")
+    ImageNames = [UserDirPath + "/" + x for x in os.listdir(UserDirPath)]
+
+    return render_template("results.html", ImageNames=ImageNames, Partition=request.args.get("Partition"), Alpha=request.args.get("Alpha"))
+
+
+#------------------------------------------------------------------------
+
+
+@app.route("/clear")
+def clear():
     
-    maps = ["Heatmap1", "Heatmap2", "Heatmap3"]
+    # Reset session
+    UserDirPath = os.path.join("static/uploads", session["UserID"])
+    shutil.rmtree(UserDirPath)
+    session.pop("UserID", None)
     
-    return render_template("results.html", maps=maps)
-    # Passes variable posts to main.html
+    return redirect(url_for("index"))
 
 
 #------------------------------------------------------------------------

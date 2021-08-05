@@ -1,20 +1,17 @@
 {% extends "template.html" %}
 {% block content %}
 
-<h2>Here are your heatmaps!</h2>
-
-<br/><br/>
-
-{{ PathToInputAln }}
 {{ Partition }}
-{{ Alpha }}
+{{ Alpha }}<br/>
 
-{% for m in maps %}
-  <strong>Label:</strong> {{ m }}
+{% for name in ImageNames %}
+  <strong>{{ name }}:</strong> 
+  <br/>
+  <img src="{{ name }}" width="200"/>
   <br/>
 {% endfor %}
   
 <br/><br/>
 
-<p><a href="{{ url_for("index") }}">Back</a></p>
+<p><a href="{{ url_for("clear") }}">Back</a></p>
 {% endblock %}

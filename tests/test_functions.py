@@ -10,6 +10,8 @@
 
 import pytest
 from itertools import combinations
+import sys
+sys.path.insert(1, '../scripts/')
 from functions import *
 
 
