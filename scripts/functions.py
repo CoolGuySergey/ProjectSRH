@@ -1,4 +1,4 @@
-
+	
 
 # Description: Functions for generating SRH heatmaps for an alignment
 
@@ -10,9 +10,9 @@
 
 # Standard:
 import itertools as ite
-
 import math
 import os
+import sys
 
 # Third party:
 import numpy as np
@@ -33,9 +33,43 @@ matplotlib.use('Agg')
 
 
 # PREPROCESSING
-# Functions for reading input alignment
-# Functions for partitioning
+# Functions for reading and unwrapping input alignment
+# Functions for partitioning input alignment
 
+
+def DetectWrappedSeq(InPath):
+    with open(InPath,"r") as FileIn:
+        TestRun = FileIn.read().split("\n", 2)
+    # string.split(separator, maxsplit)
+    # By the second split, should have already distinguished next ">"
+    if TestRun[2].startswith('>') == False:
+        return True
+    else:
+        return False
+
+
+def UnwrapSeq(InPath):
+    
+    """
+    Unwrap wrapped fasta file.
+    
+    In: (1 item) String where string contains relative path to alignment/fasta.
+    Out: (0 item) Writes to Path + "_unwrapped"
+    """
+
+    with open(InPath,"r") as FileIn:
+        BundledEntries = FileIn.read().split(">")
+
+    OutPath = InPath + "_unwrapped"
+
+    with open(OutPath, "w") as FileOut:
+        for Entry in BundledEntries[1:]: # first element is empty
+            SeqID, Seq = Entry.split("\n", 1)
+            SeqID = ">" + SeqID + "\n"
+            Seq = Seq.replace("\n","") + "\n"
+            FileOut.write(SeqID + Seq)
+
+            
 def ReadSeq(path):
 
     """
@@ -51,10 +85,6 @@ def ReadSeq(path):
     SeqsOriginalCases = fasta[0][1::2]
     SeqsUpperCases = [each_string.upper() for each_string in SeqsOriginalCases]
 
-    if SeqIDs[1].startswith('>') == False:
-        raise IndexError("""Sorry. Fasta sequence needs to be unwrapped first, try the following in your command line:
-        awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);}  END {printf("\n");}' < yourinput.fa > youroutput.fa
-        """)
     if not set(SeqsUpperCases[0]).issubset(set("CGAT-")):
         raise ValueError('Sorry. Alignment seems to contain amino acids.')
 

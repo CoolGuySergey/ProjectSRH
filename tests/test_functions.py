@@ -11,6 +11,7 @@
 import pytest
 from itertools import combinations
 import sys
+import os
 sys.path.insert(1, '../scripts/')
 from functions import *
 
@@ -21,14 +22,21 @@ from functions import *
 # PREPROCESSING
 
 def test_Preprocessing():
+
+    assert DetectWrappedSeq("WrappedExample.fa") == True
     
     assert list(ReadSeq("Example.fa").keys()) == [
         '>Hycleus cichorii',
         '>Dermestes maculatus',
     ]
 
-    with pytest.raises(IndexError):
-        ReadSeq("WrappedExample.fa")
+    UnwrapSeq("WrappedExample.fa")
+    assert list(ReadSeq("WrappedExample.fa_unwrapped").keys()) == [
+        '>NC_039657',
+        '>NC_037200',
+    ]
+    os.remove("WrappedExample.fa_unwrapped")
+    
     with pytest.raises(ValueError):
         ReadSeq("AAExample.fa")
 

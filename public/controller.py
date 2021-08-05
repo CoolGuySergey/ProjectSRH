@@ -84,8 +84,6 @@ def upload():
         
         SRHClusterMapper.run(args)
 
-        os.remove(InputPath)
-
         return redirect(url_for("results", Partition=args.p, Alpha=args.a, UserDirPath=UserDirPath))
 
     else:
@@ -102,7 +100,14 @@ def upload():
 def results():
     
     UserDirPath = request.args.get("UserDirPath")
-    ImageNames = [UserDirPath + "/" + x for x in os.listdir(UserDirPath)]
+    
+    AllItems = os.listdir(UserDirPath)
+    ValidItems = []
+    for Item in AllItems:
+        if Item.endswith(".png"):
+            ValidItems.append(Item)
+        
+    ImageNames = [UserDirPath + "/" + x for x in ValidItems]
 
     return render_template("results.html", ImageNames=ImageNames, Partition=request.args.get("Partition"), Alpha=request.args.get("Alpha"))
 

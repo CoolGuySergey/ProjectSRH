@@ -32,6 +32,10 @@ def run(args):
     Partition = args.p
     Alpha = args.a
 
+    if DetectWrappedSeq(PathToInputAln) == True:
+        UnwrapSeq(PathToInputAln)
+        PathToInputAln = PathToInputAln + "_unwrapped"
+
     if Partition:
         ListOfDicts = CodonSplitter(ReadSeq(PathToInputAln))
     else:
@@ -127,6 +131,7 @@ def run(args):
             break
         # loop over single dict while keeping enumerate() for paritioning
 
+
 #========================================================================
 
 
@@ -140,6 +145,7 @@ simplefilter("ignore", UserWarning)
 
 #========================================================================
 
+
 def str2bool(v):
     if isinstance(v, bool):
         return v
@@ -149,9 +155,10 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
+
     
 def main():
-    
+
     parser = argparse.ArgumentParser(description='Use this to perform SRH tests on an alignment.')
     
     parser.add_argument("-input", help="Relative path of input alignment", required=True, dest="i", type=str)
@@ -165,6 +172,8 @@ def main():
     args = parser.parse_args()
     
     args.func(args)
+
+    #========================================================================
 
 
 if __name__ == '__main__':
