@@ -64,7 +64,7 @@ def run(args):
             
             x, y = SeqDict[pair[0]], SeqDict[pair[1]]
             m = DivergenceMtx(x, y)
-            
+
             if np.all(m[np.triu_indices(4, 1)] == 0):
                 print("Encountered pair with all-zero off-diagonals")
                 nancount +=1
@@ -75,7 +75,6 @@ def run(args):
                 continue
 
             BowkersStat, BowkersDf = list(Bowkers(m))
-            
                 
             BowkersPval = pval(BowkersStat, BowkersDf)
             StuartsStat, StuartsDf = Stuarts(m), 3

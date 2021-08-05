@@ -10,6 +10,8 @@
 import sys
 import os
 import shutil
+from random import SystemRandom
+from string import ascii_uppercase
 
 # External:
 from flask import Flask, render_template, request, session, flash, redirect, url_for, g
@@ -64,7 +66,7 @@ def upload():
     UploadedFile = request.files['PathToInputAln']
     if UploadedFile.filename != '':
 
-        session["UserID"] = os.urandom(5).decode('latin1')
+        session["UserID"] = ''.join(SystemRandom().choice(ascii_uppercase) for _ in range(7))
         UserDirPath = os.path.join("static/uploads", str(session["UserID"]))
         # os.path.join returns str type
         # Path: static/uploads/Òa;rO/
@@ -73,7 +75,7 @@ def upload():
         InputPath = os.path.join(UserDirPath, "TempFileIn")
         UploadedFile.save(InputPath)
         # makes dir with path static/uploads/Òa;rO/ and saves TempFileIn
-
+        
         class ArgsClass:
             i = InputPath
             p = request.form['Partition']

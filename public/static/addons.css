@@ -10,6 +10,24 @@
     float: right;
 }
 
+table, th, td {
+    border: 1px #e8ffff solid;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 6px;
+}
+
+th {
+    height: 30px;
+}
+
+
 #form label{
     display: block;
 }

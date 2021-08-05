@@ -18,7 +18,7 @@ setup(
         "functions",
         "SRHClusterMapper",
     ],
-    package_dir = {"" : "src"},
+    package_dir = {"" : "scripts"},
 
     
     install_requires = [
@@ -30,6 +30,7 @@ setup(
     extras_require = {
         "dev": [
             "pytest == 6.2.4",
+            "flask == 2.0.1"
         ],
     },
 
