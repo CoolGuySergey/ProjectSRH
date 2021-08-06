@@ -1,14 +1,16 @@
 {% extends "template.html" %}
 {% block content %}
 
+<br/><br/>
+
 {{ Partition }}
-{{ Alpha }}<br/>
+{{ Alpha }}
+
+<br/><br/>
 
 {% for name in ImageNames %}
-  <strong>{{ name }}:</strong> 
-  <br/>
-  <img src="{{ name }}" width="200"/>
-  <br/>
+  <h2>{{ name }}:</h2>
+  <img src="{{ name }}" style="width:100%" display="inline-block"/>
 {% endfor %}
   
 <br/><br/>

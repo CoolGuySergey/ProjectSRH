@@ -32,7 +32,8 @@ def run(args):
     Partition = args.p
     Alpha = args.a
 
-    if DetectWrappedSeq(PathToInputAln) == True:
+    if DetectWrappedSeq(PathToInputAln):
+        #True if sequence wrapped
         UnwrapSeq(PathToInputAln)
         PathToInputAln = PathToInputAln + "_unwrapped"
 
@@ -108,16 +109,18 @@ def run(args):
         else:
             BowkersAlpha = StuartsAlpha = AbabnehsAlpha = Alpha
 
-        print(f"Printing Clustermaps for all three tests...")
-        MaskedHeatmap(AllBowkersMtx, BowkersAlpha, f"{PathToInputAln}Codon{DictName+1}_Bowkers.png")
-        MaskedHeatmap(AllStuartsMtx, StuartsAlpha, f"{PathToInputAln}Codon{DictName+1}_Stuarts.png")
-        MaskedHeatmap(AllAbabnehsMtx, AbabnehsAlpha, f"{PathToInputAln}Codon{DictName+1}_Ababnehs.png")
-        print('\n')
-
         if Partition:
+            print(f"Printing Clustermaps for all three tests...")
+            MaskedHeatmap(AllBowkersMtx, BowkersAlpha, f"{PathToInputAln}_Codon{DictName+1}_Bowkers_Alpha{BowkersAlpha:.2f}.png")
+            MaskedHeatmap(AllStuartsMtx, StuartsAlpha, f"{PathToInputAln}_Codon{DictName+1}_Stuarts_Alpha{StuartsAlpha:.2f}.png")
+            MaskedHeatmap(AllAbabnehsMtx, AbabnehsAlpha, f"{PathToInputAln}_Codon{DictName+1}_Ababnehs_Alpha{AbabnehsAlpha:.2f}.png")
             print(f"All three tests complete for partition {DictName+1} of alignment.")
             print('\n')
         else:
+            print(f"Printing Clustermaps for all three tests...")
+            MaskedHeatmap(AllBowkersMtx, BowkersAlpha, f"{PathToInputAln}_unpartitioned_Bowkers_Alpha{BowkersAlpha:.2f}.png")
+            MaskedHeatmap(AllStuartsMtx, StuartsAlpha, f"{PathToInputAln}_unpartitioned_Stuarts_Alpha{StuartsAlpha:.2f}.png")
+            MaskedHeatmap(AllAbabnehsMtx, AbabnehsAlpha, f"{PathToInputAln}_unpartitioned_Ababnehs_Alpha{AbabnehsAlpha:.2f}.png")
             print(f"All three tests complete for unpartitioned alignment.")
             print('\n')
         

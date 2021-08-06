@@ -38,6 +38,14 @@ matplotlib.use('Agg')
 
 
 def DetectWrappedSeq(InPath):
+        
+    """
+    Detect wrapped fasta file.
+    
+    In: (1 item) String where string contains relative path to alignment/fasta.
+    Out: (1 item) Boolean
+    """
+
     with open(InPath,"r") as FileIn:
         TestRun = FileIn.read().split("\n", 2)
     # string.split(separator, maxsplit)
@@ -328,7 +336,7 @@ def pval(s, df):
 
 
 def SequentialBonferroni(StatsList):
-    
+
     """
     Seeks appropriate significance level from multiple p-values.
     
@@ -357,15 +365,19 @@ def Broadcast2Matrix(StatsList, SeqDict):
     
     n = len(SeqDict)
     mat = np.eye(n) # create n*n zero matrix
+    
     iuu = np.triu_indices(n, 1) # 1 to exlude main diagonal
     mat[iuu] = StatsList # project string to upper triangular
 
     mat = mat + mat.T - np.diag(np.diag(mat))
     # Project to lower triangular by adding the transpose and
-    # subtracting the diagonal. Will be faster albeit less readable.  
+    # subtracting the diagonal. Will be faster albeit less readable.
+
+    np.fill_diagonal(mat, np.nan)
     
     df = pd.DataFrame(mat, columns=SeqDict.keys())
     df.index = SeqDict.keys()
+    
     return df
 
 # for sequences a,b,c,d,e

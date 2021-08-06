@@ -79,7 +79,7 @@ def test_DataVisualisation():
     test = [0.13, 1e-05, 0.003, 0.05, 0.00099, 0.06, 0.035]
     assert SequentialBonferroni(test) == 0.003
 
-        # For the list of test PVals, the first three are significant,
+    # For the list of test PVals, the first three are significant,
     # as PVal < Bonferroni corrected PVal
     
     # PVal   	test	inverse	      Bonferroni corrected PVal
@@ -103,13 +103,11 @@ def test_DataVisualisation():
         AllBowkers.append(BowkersPval)
 
     assert len(Broadcast2Matrix(AllBowkers, ExDict)) == 4
-    assert (Broadcast2Matrix(AllBowkers, ExDict)).isnull().values.any() == False
 
     dataframe = Broadcast2Matrix(AllBowkers, ExDict)
     Alpha = SequentialBonferroni(AllBowkers)
     boolean = dataframe < Alpha
     cmap = sns.diverging_palette(240,10,n=2)
     cg = sns.clustermap(boolean, cmap=cmap, yticklabels=1, xticklabels=1)
-
     # It's surprisingly difficult to eyeball...
     # but seq1 & seq3 form a cluster, seq2 & seq4 form a cluster

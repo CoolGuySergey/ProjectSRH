@@ -28,7 +28,6 @@ import SRHClusterMapper
 
 
 # Configuration
-MAX_CONTENT_LENGTH = 1024 * 1024
 SECRET_KEY = os.urandom(5)
 # Maximum size a request body can have is 1MB
 # Requests that are larger than this are discarded with a 413 status code.
@@ -83,7 +82,7 @@ def upload():
 
         args = ArgsClass()
         args.p = SRHClusterMapper.str2bool(args.p)
-        
+
         SRHClusterMapper.run(args)
 
         return redirect(url_for("results", Partition=args.p, Alpha=args.a, UserDirPath=UserDirPath))
@@ -100,7 +99,11 @@ def upload():
 
 @app.route("/results")
 def results():
-    
+
+    if "UserID" not in session:
+        flash("Please upload an alignment first.")
+        return redirect(url_for("index"))
+
     UserDirPath = request.args.get("UserDirPath")
     
     AllItems = os.listdir(UserDirPath)
@@ -119,7 +122,7 @@ def results():
 
 @app.route("/clear")
 def clear():
-    
+
     # Reset session
     UserDirPath = os.path.join("static/uploads", session["UserID"])
     shutil.rmtree(UserDirPath)
