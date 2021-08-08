@@ -106,8 +106,22 @@ def test_DataVisualisation():
 
     dataframe = Broadcast2Matrix(AllBowkers, ExDict)
     Alpha = SequentialBonferroni(AllBowkers)
-    boolean = dataframe < Alpha
-    cmap = sns.diverging_palette(240,10,n=2)
+
+    # Initialise with masks and palletes:
+    boolean = datafram < Alpha
+    cmap = sns.diverging_palette(240, 10, n=2)
     cg = sns.clustermap(boolean, cmap=cmap, yticklabels=1, xticklabels=1)
+
+    # Font sizes:
+    cg.ax_heatmap.set_xticklabels(cg.ax_heatmap.get_xmajorticklabels(), fontsize=12)
+    cg.ax_heatmap.set_yticklabels(cg.ax_heatmap.get_ymajorticklabels(), fontsize=12)
+
+    # Hide unnecessaries:
+    cg.ax_row_dendrogram.set_visible(False) # Hide 'trees'
+    cg.ax_col_dendrogram.set_visible(False) # Hide 'trees'
+    cg.cax.set_visible(False) # Hide colour bar
+
+    cg.savefig("testoutput", format="png", dpi=350)
+
     # It's surprisingly difficult to eyeball...
     # but seq1 & seq3 form a cluster, seq2 & seq4 form a cluster

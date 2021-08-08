@@ -111,16 +111,16 @@ def run(args):
 
         if Partition:
             print(f"Printing Clustermaps for all three tests...")
-            MaskedHeatmap(AllBowkersMtx, BowkersAlpha, f"{PathToInputAln}_Codon{DictName+1}_Bowkers_Alpha{BowkersAlpha:.2f}.png")
-            MaskedHeatmap(AllStuartsMtx, StuartsAlpha, f"{PathToInputAln}_Codon{DictName+1}_Stuarts_Alpha{StuartsAlpha:.2f}.png")
-            MaskedHeatmap(AllAbabnehsMtx, AbabnehsAlpha, f"{PathToInputAln}_Codon{DictName+1}_Ababnehs_Alpha{AbabnehsAlpha:.2f}.png")
+            MaskedHeatmap(AllBowkersMtx, BowkersAlpha, f"{PathToInputAln}_Codon{DictName+1}_Bowkers_Alpha{BowkersAlpha:.2f}.jpg")
+            MaskedHeatmap(AllStuartsMtx, StuartsAlpha, f"{PathToInputAln}_Codon{DictName+1}_Stuarts_Alpha{StuartsAlpha:.2f}.jpg")
+            MaskedHeatmap(AllAbabnehsMtx, AbabnehsAlpha, f"{PathToInputAln}_Codon{DictName+1}_Ababnehs_Alpha{AbabnehsAlpha:.2f}.jpg")
             print(f"All three tests complete for partition {DictName+1} of alignment.")
             print('\n')
         else:
             print(f"Printing Clustermaps for all three tests...")
-            MaskedHeatmap(AllBowkersMtx, BowkersAlpha, f"{PathToInputAln}_unpartitioned_Bowkers_Alpha{BowkersAlpha:.2f}.png")
-            MaskedHeatmap(AllStuartsMtx, StuartsAlpha, f"{PathToInputAln}_unpartitioned_Stuarts_Alpha{StuartsAlpha:.2f}.png")
-            MaskedHeatmap(AllAbabnehsMtx, AbabnehsAlpha, f"{PathToInputAln}_unpartitioned_Ababnehs_Alpha{AbabnehsAlpha:.2f}.png")
+            MaskedHeatmap(AllBowkersMtx, BowkersAlpha, f"{PathToInputAln}_unpartitioned_Bowkers_Alpha{BowkersAlpha:.2f}.jpg")
+            MaskedHeatmap(AllStuartsMtx, StuartsAlpha, f"{PathToInputAln}_unpartitioned_Stuarts_Alpha{StuartsAlpha:.2f}.jpg")
+            MaskedHeatmap(AllAbabnehsMtx, AbabnehsAlpha, f"{PathToInputAln}_unpartitioned_Ababnehs_Alpha{AbabnehsAlpha:.2f}.jpg")
             print(f"All three tests complete for unpartitioned alignment.")
             print('\n')
         

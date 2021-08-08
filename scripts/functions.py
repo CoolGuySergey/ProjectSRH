@@ -20,6 +20,7 @@ from scipy.stats import chi2
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import matplotlib
 matplotlib.use('Agg')
 
@@ -396,8 +397,11 @@ def MaskedHeatmap(dataframe, Alpha, filename):
     In: (3 items) Dataframe to visualise, filename of png image, significance level alpha.
     Out: (1 item) png image saved to working directory.
     '''
-    
+
+    # Initialise with masks and palletes:
     boolean = dataframe < Alpha
+    PassCounts = (boolean.sum().sum())/2
+    print(f"Pass Count: {PassCounts} pairs pass test")
     
     cmap = sns.diverging_palette(240,10,n=2)
     cg = sns.clustermap(boolean, cmap=cmap, yticklabels=1, xticklabels=1)
@@ -410,11 +414,15 @@ def MaskedHeatmap(dataframe, Alpha, filename):
     # })
     # sns.clustermap( ... , row_colors=suborder_colors)
 
-    # Aesthetics:
-    cg.ax_heatmap.set_xticklabels(cg.ax_heatmap.get_xmajorticklabels(), fontsize=12)
-    cg.ax_heatmap.set_yticklabels(cg.ax_heatmap.get_ymajorticklabels(), fontsize=12)
+    # Font sizes:
+    cg.ax_heatmap.set_xticklabels(cg.ax_heatmap.get_xmajorticklabels(), fontsize=1.75)
+    cg.ax_heatmap.set_yticklabels(cg.ax_heatmap.get_ymajorticklabels(), fontsize=1.75)
+
+    # Hide unnecessaries:
     cg.ax_row_dendrogram.set_visible(False) # Hide 'trees'
     cg.ax_col_dendrogram.set_visible(False) # Hide 'trees'
     cg.cax.set_visible(False) # Hide colour bar
-    cg.savefig(filename, format="png", dpi=350)
+
+    # Resolution:
+    cg.savefig(filename, format="jpg", dpi=450)
     #plt.show()
