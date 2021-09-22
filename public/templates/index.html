@@ -4,7 +4,7 @@
 <main>
   
   <h3><strong>Please Note: </strong>Currently only accepts nucleotide alignments in Fasta format.</h3><br/>
-  
+
   <div id="floatleft">
     
     <table>
@@ -19,21 +19,24 @@
 	<tr>
 	  <td>Bowkers</td>
 	  <td>Maximal Symmetry</td>
-	  <td>asdfgh</td>
+	  <td>Obtaining the sequence-pair by chance under stationarity (assumption I) or global homogeneity (assumption III) is unlikely.</td>
 	</tr>
 	<tr>
 	  <td>Stuarts</td>
 	  <td>Marginal Symmetry</td>
-	  <td>asdfgh</td>
+	  <td>Obtaining the sequence-pair by chance under stationarity (assumption I) is unlikely.</td>
 	</tr>
 	<tr>
 	  <td>Ababnehs</td>
 	  <td>Internal Symmetry</td>
-	  <td>asdfgh</td>
+	  <td>Obtaining the sequence-pair by chance under global homogeneity (assumption III) is unlikely.</td>
 	</tr>
       </tbody>
     </table><br/><br/>
+    
+  </div>
 
+  <div id="floatright">
     <form action="{{ url_for('upload') }}" enctype="multipart/form-data" method="post" id="form">
       <label for="PathToInputAln">Upload input alignment:</label>
       <input type="file" name="PathToInputAln" accept=".fasta,.fa"><br>
@@ -50,13 +53,11 @@
       <input type="submit" class="button">
     </form><br/>
 
-    <p>*If given a custom/arbitrary value (e.g. 0.05), SRHClusterMapper <em>will not</em> perform Sequential Bonferroni correction. By default behaviour, Sequential Bonferroni correction will be performed to seek a significance value lower than 0.05. i.e. Leaving this option to default will result in more sequences passing the symmetry tests.</p>
+    <p>*If given a custom/arbitrary value (e.g. 0.05), SRHClusterMapper <em>will not</em> perform Sequential Bonferroni correction. By default behaviour, Sequential Bonferroni correction will be performed to seek a significance value lower than 0.05. i.e. Leaving this option to default will result in <em>more sequences passing</em> the symmetry tests.</p>
 
   </div>
-
-  <div id="floatright">
-    <p>This floats right</p>
-  </div>
+  
+  <img src="static/gallery1.png">
 
 </main>
 

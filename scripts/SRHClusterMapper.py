@@ -32,11 +32,6 @@ def run(args):
     Partition = args.p
     Alpha = args.a
 
-    if DetectWrappedSeq(PathToInputAln):
-        #True if sequence wrapped
-        UnwrapSeq(PathToInputAln)
-        PathToInputAln = PathToInputAln + "_unwrapped"
-
     if Partition:
         ListOfDicts = CodonSplitter(ReadSeq(PathToInputAln))
     else:
@@ -161,13 +156,16 @@ def str2bool(v):
     
 def main():
 
-    parser = argparse.ArgumentParser(description='Use this to perform SRH tests on an alignment.')
+    parser = argparse.ArgumentParser(
+        description = 'Use this to perform SRH tests on an alignment.',
+        formatter_class = argparse.ArgumentDefaultsHelpFormatter
+    )
     
-    parser.add_argument("-input", help="Relative path of input alignment", required=True, dest="i", type=str)
+    parser.add_argument("-i", "--input", help="Relative path of input alignment", required=True, dest="i", type=str)
 
-    parser.add_argument("-partition", help="If true, SRHClusterMapper will partition input data into three codon positions and perform SRH tests on them separately. Defaults to False.", type=str2bool, default=False, dest="p")
+    parser.add_argument("-p", "--partition", help="If true, SRHClusterMapper will partition input data into three codon positions and perform SRH tests on them separately. Defaults to False.", type=str2bool, default=False, dest="p")
     
-    parser.add_argument("-alpha", help="Significance value. If given a custom/arbitrary value (e.g. 0.05), SRHClusterMapper will not perform Sequential Bonferroni correction. By default behaviour, Sequential Bonferroni correction will be performed to seek a significance value lower than 0.05. i.e. Leaving this option to default  will result in more sequences passing the symmetry tests.", default=0, dest="a", type=float)
+    parser.add_argument("-a", "--alpha", help="Significance value. If given a custom/arbitrary value (e.g. 0.05), SRHClusterMapper will not perform Sequential Bonferroni correction. By default behaviour, Sequential Bonferroni correction will be performed to seek a significance value lower than 0.05. i.e. Leaving this option to default  will result in more sequences passing the symmetry tests.", default=0, dest="a", type=float)
     
     parser.set_defaults(func=run)
     

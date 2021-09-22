@@ -34,52 +34,11 @@ matplotlib.use('Agg')
 
 
 # PREPROCESSING
-# Functions for reading and unwrapping input alignment
+# Functions for reading in fasta (wrapped or unwrapped)
 # Functions for partitioning input alignment
 
-
-def DetectWrappedSeq(InPath):
-        
-    """
-    Detect wrapped fasta file.
-    
-    In: (1 item) String where string contains relative path to alignment/fasta.
-    Out: (1 item) Boolean
-    """
-
-    with open(InPath,"r") as FileIn:
-        TestRun = FileIn.read().split("\n", 2)
-    # string.split(separator, maxsplit)
-    # By the second split, should have already distinguished next ">"
-    if TestRun[2].startswith('>') == False:
-        return True
-    else:
-        return False
-
-
-def UnwrapSeq(InPath):
-    
-    """
-    Unwrap wrapped fasta file.
-    
-    In: (1 item) String where string contains relative path to alignment/fasta.
-    Out: (0 item) Writes to Path + "_unwrapped"
-    """
-
-    with open(InPath,"r") as FileIn:
-        BundledEntries = FileIn.read().split(">")
-
-    OutPath = InPath + "_unwrapped"
-
-    with open(OutPath, "w") as FileOut:
-        for Entry in BundledEntries[1:]: # first element is empty
-            SeqID, Seq = Entry.split("\n", 1)
-            SeqID = ">" + SeqID + "\n"
-            Seq = Seq.replace("\n","") + "\n"
-            FileOut.write(SeqID + Seq)
-
             
-def ReadSeq(path):
+def ReadSeq(Path):
 
     """
     Reads in alignment as fasta file.
@@ -88,16 +47,31 @@ def ReadSeq(path):
     Out: (1 item) Dictionary where keys are SeqIDs and items are Seqs.
     """
     
-    with open(str(path), "r") as filein:
-        fasta = [i.split('\n') for i in filein.read().strip().split('\n\n')]
-    SeqIDs = fasta[0][::2]
-    SeqsOriginalCases = fasta[0][1::2]
-    SeqsUpperCases = [each_string.upper() for each_string in SeqsOriginalCases]
+    with open(str(Path), "r") as FileIn:
+        Fasta = [i.split('\n') for i in FileIn.read().strip().split('\n\n')][0]
+    
+    SeqDict = {}
+    CurrentID = None
+    CurrentSeq = ''
+    
+    for Line in Fasta:
+        
+        Line = Line.strip()
+        
+        if len(Line) == 0:
+            continue
+        if (Line[0] == '>'):
+            CurrentID = Line
+            CurrentSeq = ''
+            SeqDict[CurrentID] = CurrentSeq
+        else:
+            CurrentSeq += Line.upper()
 
-    if not set(SeqsUpperCases[0]).issubset(set("CGAT-")):
-        raise ValueError('Sorry. Alignment seems to contain amino acids.')
-
-    return dict(zip(SeqIDs, SeqsUpperCases))
+        SeqDict[CurrentID] = CurrentSeq.upper()
+        if not set(CurrentSeq).issubset(set("CGAT-")):
+            raise ValueError('Sorry. Alignment seems to contain amino acids.')
+        
+    return SeqDict
 
 
 def CodonSplitter(InputDict):
@@ -400,8 +374,9 @@ def MaskedHeatmap(dataframe, Alpha, filename):
 
     # Initialise with masks and palletes:
     boolean = dataframe < Alpha
-    PassCounts = (boolean.sum().sum())/2
-    print(f"Pass Count: {PassCounts} pairs pass test")
+    FailCounts = (boolean.sum().sum())/2
+    # Counting True so counting fails
+    print(f"Fail Count: {FailCounts} pairs fail test")
     
     cmap = sns.diverging_palette(240,10,n=2)
     cg = sns.clustermap(boolean, cmap=cmap, yticklabels=1, xticklabels=1)

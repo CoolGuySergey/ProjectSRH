@@ -23,19 +23,15 @@ from functions import *
 
 def test_Preprocessing():
 
-    assert DetectWrappedSeq("WrappedExample.fa") == True
-    
     assert list(ReadSeq("Example.fa").keys()) == [
         '>Hycleus cichorii',
         '>Dermestes maculatus',
     ]
 
-    UnwrapSeq("WrappedExample.fa")
-    assert list(ReadSeq("WrappedExample.fa_unwrapped").keys()) == [
+    assert list(ReadSeq("WrappedExample.fa").keys()) == [
         '>NC_039657',
         '>NC_037200',
     ]
-    os.remove("WrappedExample.fa_unwrapped")
     
     with pytest.raises(ValueError):
         ReadSeq("AAExample.fa")
@@ -103,25 +99,6 @@ def test_DataVisualisation():
         AllBowkers.append(BowkersPval)
 
     assert len(Broadcast2Matrix(AllBowkers, ExDict)) == 4
-
-    dataframe = Broadcast2Matrix(AllBowkers, ExDict)
-    Alpha = SequentialBonferroni(AllBowkers)
-
-    # Initialise with masks and palletes:
-    boolean = datafram < Alpha
-    cmap = sns.diverging_palette(240, 10, n=2)
-    cg = sns.clustermap(boolean, cmap=cmap, yticklabels=1, xticklabels=1)
-
-    # Font sizes:
-    cg.ax_heatmap.set_xticklabels(cg.ax_heatmap.get_xmajorticklabels(), fontsize=12)
-    cg.ax_heatmap.set_yticklabels(cg.ax_heatmap.get_ymajorticklabels(), fontsize=12)
-
-    # Hide unnecessaries:
-    cg.ax_row_dendrogram.set_visible(False) # Hide 'trees'
-    cg.ax_col_dendrogram.set_visible(False) # Hide 'trees'
-    cg.cax.set_visible(False) # Hide colour bar
-
-    cg.savefig("testoutput", format="png", dpi=350)
 
     # It's surprisingly difficult to eyeball...
     # but seq1 & seq3 form a cluster, seq2 & seq4 form a cluster
