@@ -12,7 +12,7 @@ DNA base substitution is far more complex than most popular models assume. Even 
 
     III. Homogeneity: Constant rates of change assumed to cover all edges in a tree.
 
-Or, more intuitively: when models assume SRH conditions, it is assuming that when two sequences diverge, changes accumulate symmetrically in both sequences. In practice, SRH assumptions are often violated. For a given alignment, SRHClusterMapper launches (codon partitioning optional) three separate analyses. For each analysis, divergence matrices (as shown in example above) are computed for every sequence pair in the alignment. This is a 4x4 matrix where off-diagonal elements document base changes.
+Or, more intuitively: when models assume SRH conditions, it is assuming that when two sequences diverge, changes accumulate symmetrically in both sequences. For a given alignment, SRHClusterMapper computes divergence matrices (shown in example below) for every sequence pair in the alignment. This is a 4x4 matrix where off-diagonal elements document base changes and forms the basis of all three symmetry tests.
 
 ![SRHClusterMapper screenshot](/images/gallery0.png)
 
@@ -39,9 +39,6 @@ python scripts/SRHClustermapper.py --input <in_file> --alpha 0.05
 Important:
 1. The three tests and the three conditions (SRH) do not map one-to-one (see screenshot of landing page above).
 2. Invalid pairs occur when a particular pair of sequences are identical or do not have overlapping non-gap sites in the (off-diagonals sum to 0 in divergence matrix m).
-
-
-![SRHClusterMapper screenshot](/images/gallery1.png)
 
 REQUIREMENTS
 ===
