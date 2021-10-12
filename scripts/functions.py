@@ -68,8 +68,9 @@ def ReadSeq(Path):
             CurrentSeq += Line.upper()
 
         SeqDict[CurrentID] = CurrentSeq.upper()
-        if not set(CurrentSeq).issubset(set("CGAT-")):
-            raise ValueError('Sorry. Alignment seems to contain amino acids.')
+        
+        #if not set(CurrentSeq).issubset(set("CGAT-")):
+            #raise ValueError('Sorry. Alignment seems to contain amino acids.')
         
     return SeqDict
 
@@ -376,7 +377,7 @@ def MaskedHeatmap(dataframe, Alpha, filename):
     boolean = dataframe < Alpha
     FailCounts = (boolean.sum().sum())/2
     # Counting True so counting fails
-    print(f"Fail Count: {FailCounts} pairs fail test")
+    # print(f"Fail Count: {FailCounts} pairs fail test")
     
     cmap = sns.diverging_palette(240,10,n=2)
     cg = sns.clustermap(boolean, cmap=cmap, yticklabels=1, xticklabels=1)
