@@ -6,11 +6,11 @@ SRHClusterMapper is a web(**on-hold)/CLI tool made with the aim to clearly visua
 
 DNA base substitution is far more complex than most popular models assume. Even the most parameter-rich of the models make the assumptions of stationary, reversible, and homogenous conditions:
 
-    I. Stationarity: The probability of obtaining a given nucleotide remains the same between different sequences
+I. Stationarity: The probability of obtaining a given nucleotide remains the same between different sequences
 
-    II. Reversibility: Requires stationarity. When sampling a nucleotide from the stationary distribution i.e. stationarity evolving composition, the probability of its substitution by another nucleotide is the same if sampling had happened vice versa.
+II. Reversibility: Requires stationarity. When sampling a nucleotide from the stationary distribution i.e. stationarity evolving composition, the probability of its substitution by another nucleotide is the same if sampling had happened vice versa.
 
-    III. Homogeneity: Constant rates of change assumed to cover all edges in a tree.
+III. Homogeneity: Constant rates of change assumed to cover all edges in a tree.
 
 Or, more intuitively: when models assume SRH conditions, it is assuming that when two sequences diverge, changes accumulate symmetrically in both sequences. For a given alignment, SRHClusterMapper computes divergence matrices (shown in example below) for every sequence pair in the alignment. This is a 4x4 matrix where off-diagonal elements document base changes and forms the basis of all three symmetry tests.
 
@@ -38,7 +38,7 @@ python scripts/SRHClustermapper.py --input <in_file> --alpha 0.05
 
 Important:
 1. The three tests and the three conditions (SRH) do not map one-to-one (see screenshot of landing page above).
-2. Invalid pairs occur when a particular pair of sequences are identical or do not have overlapping non-gap sites in the (off-diagonals sum to 0 in divergence matrix m).
+2. Invalid pairs occur when a particular pair of sequences are identical or do not have overlapping non-gap sites in theM (off-diagonals sum to 0 in divergence matrix m).
 
 REQUIREMENTS
 ===
