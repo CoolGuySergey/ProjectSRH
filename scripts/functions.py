@@ -370,7 +370,7 @@ def MaskedHeatmap(dataframe, Alpha, filename):
     Broadcast string of p-values to dataframe.
     
     In: (3 items) Dataframe to visualise, filename of png image, significance level alpha.
-    Out: (1 item) png image saved to working directory.
+    Out: (2 item) Boolean dataframe and re-ordered indices post-clustering. Also saves jpg to cwd.
     '''
 
     # Initialise with masks and palletes:
@@ -379,7 +379,7 @@ def MaskedHeatmap(dataframe, Alpha, filename):
     # Counting True so counting fails
     # print(f"Fail Count: {FailCounts} pairs fail test")
     
-    cmap = sns.diverging_palette(240,10,n=2)
+    cmap = sns.diverging_palette(240, 10, n=2)
     cg = sns.clustermap(boolean, cmap=cmap, yticklabels=1, xticklabels=1)
 
     # TRY: adding a suborder column to df then categorising rows with
@@ -391,8 +391,8 @@ def MaskedHeatmap(dataframe, Alpha, filename):
     # sns.clustermap( ... , row_colors=suborder_colors)
 
     # Font sizes:
-    cg.ax_heatmap.set_xticklabels(cg.ax_heatmap.get_xmajorticklabels(), fontsize=1.75)
-    cg.ax_heatmap.set_yticklabels(cg.ax_heatmap.get_ymajorticklabels(), fontsize=1.75)
+    cg.ax_heatmap.set_xticklabels(cg.ax_heatmap.get_xmajorticklabels(), fontsize=21.75)
+    cg.ax_heatmap.set_yticklabels(cg.ax_heatmap.get_ymajorticklabels(), fontsize=21.75)
 
     # Hide unnecessaries:
     cg.ax_row_dendrogram.set_visible(False) # Hide 'trees'
@@ -402,3 +402,49 @@ def MaskedHeatmap(dataframe, Alpha, filename):
     # Resolution:
     cg.savefig(filename, format="jpg", dpi=450)
     #plt.show()
+
+    return boolean, cg.dendrogram_row.reordered_ind
+
+
+#========================================================================
+
+RowReord = boolean.iloc[cg.dendrogram_row.reordered_ind]
+FullReord = RowReord[[list(dataframerowreord.columns)[x] for x in cg.dendrogram_row.reordered_ind]]
+# Reshuffle to look like this:
+#        >Seq1  >Seq3  >Seq2  >Seq4
+# >Seq1  False  False   True   True
+# >Seq3  False  False   True   True
+# >Seq2   True   True  False  False
+# >Seq4   True   True  False  False
+
+Benchmark = 1
+
+# check for first 4*4
+# expand to 5*5, 6*6, 7*7 etc
+
+# while allfails/allcomps < benchmark
+# if any sequence fails more than %benchmark:
+#     drop sequence
+# else:
+#     add seqeunce
+
+# i.e. failing rogues are dismissed before the cluster is assessed for maturity
+
+
+FailingPositions = [i for i, AssymTrue in enumerate(list(FullReord.iloc[:, 0])) if AssymTrue]
+# Take the first col, FullReord.iloc[:, 0]
+# Give me positions of all True's (fails)
+
+for FailCount, FailingRow in enumerate(FailingPositions):
+    # print(f"This is the {FailCount}th row to have failed")
+    # print(f"The failing row is the {FailingRow}th row")
+    
+    MaxFails = int((1 - Benchmark)*(FailingRow+1)) # int rounds down
+    # print(f"At the {FailingRow}th position there are {FailingRow+1} seqs in this cluster.")
+    # print(f"I'm accepting no more than {MaxFails} fails")
+
+    if FailCount >= MaxFails:
+    # Nip off cluster. Remove row/col associated with cluster for next iteration.
+        ClusterDF = FullReord.iloc[:FailingRow , :FailingRow]
+        RemainingDF = FullReord.iloc[FailingRow: , FailingRow:]
+        break
