@@ -71,7 +71,7 @@ def ReadSeq(Path):
         
         #if not set(CurrentSeq).issubset(set("CGAT-")):
             #raise ValueError('Sorry. Alignment seems to contain amino acids.')
-        
+    
     return SeqDict
 
 
@@ -380,7 +380,7 @@ def MaskedHeatmap(dataframe, Alpha, filename):
     # print(f"Fail Count: {FailCounts} pairs fail test")
     
     cmap = sns.diverging_palette(240, 10, n=2)
-    cg = sns.clustermap(boolean, cmap=cmap, yticklabels=1, xticklabels=1)
+    cg = sns.clustermap(boolean, method='complete', metric='hamming', cmap=cmap, yticklabels=1, xticklabels=1)
 
     # TRY: adding a suborder column to df then categorising rows with
     # species_colors = df.suborder.map({
@@ -391,8 +391,8 @@ def MaskedHeatmap(dataframe, Alpha, filename):
     # sns.clustermap( ... , row_colors=suborder_colors)
 
     # Font sizes:
-    cg.ax_heatmap.set_xticklabels(cg.ax_heatmap.get_xmajorticklabels(), fontsize=21.75)
-    cg.ax_heatmap.set_yticklabels(cg.ax_heatmap.get_ymajorticklabels(), fontsize=21.75)
+    cg.ax_heatmap.set_xticklabels(cg.ax_heatmap.get_xmajorticklabels(), fontsize=1.75)
+    cg.ax_heatmap.set_yticklabels(cg.ax_heatmap.get_ymajorticklabels(), fontsize=1.75)
 
     # Hide unnecessaries:
     cg.ax_row_dendrogram.set_visible(False) # Hide 'trees'
@@ -403,13 +403,13 @@ def MaskedHeatmap(dataframe, Alpha, filename):
     cg.savefig(filename, format="jpg", dpi=450)
     #plt.show()
 
-    return boolean, cg.dendrogram_row.reordered_ind
+    # return boolean, cg.dendrogram_row.reordered_ind
 
 
 #========================================================================
 
-RowReord = boolean.iloc[cg.dendrogram_row.reordered_ind]
-FullReord = RowReord[[list(dataframerowreord.columns)[x] for x in cg.dendrogram_row.reordered_ind]]
+#RowReord = boolean.iloc[cg.dendrogram_row.reordered_ind]
+#FullReord = RowReord[[list(dataframerowreord.columns)[x] for x in cg.dendrogram_row.reordered_ind]]
 # Reshuffle to look like this:
 #        >Seq1  >Seq3  >Seq2  >Seq4
 # >Seq1  False  False   True   True
@@ -417,7 +417,7 @@ FullReord = RowReord[[list(dataframerowreord.columns)[x] for x in cg.dendrogram_
 # >Seq2   True   True  False  False
 # >Seq4   True   True  False  False
 
-Benchmark = 1
+#Benchmark = 1
 
 # check for first 4*4
 # expand to 5*5, 6*6, 7*7 etc
@@ -431,20 +431,20 @@ Benchmark = 1
 # i.e. failing rogues are dismissed before the cluster is assessed for maturity
 
 
-FailingPositions = [i for i, AssymTrue in enumerate(list(FullReord.iloc[:, 0])) if AssymTrue]
+#FailingPositions = [i for i, AssymTrue in enumerate(list(FullReord.iloc[:, 0])) if AssymTrue]
 # Take the first col, FullReord.iloc[:, 0]
 # Give me positions of all True's (fails)
 
-for FailCount, FailingRow in enumerate(FailingPositions):
+#for FailCount, FailingRow in enumerate(FailingPositions):
     # print(f"This is the {FailCount}th row to have failed")
     # print(f"The failing row is the {FailingRow}th row")
     
-    MaxFails = int((1 - Benchmark)*(FailingRow+1)) # int rounds down
+    #MaxFails = int((1 - Benchmark)*(FailingRow+1)) # int rounds down
     # print(f"At the {FailingRow}th position there are {FailingRow+1} seqs in this cluster.")
     # print(f"I'm accepting no more than {MaxFails} fails")
 
-    if FailCount >= MaxFails:
+    #if FailCount >= MaxFails:
     # Nip off cluster. Remove row/col associated with cluster for next iteration.
-        ClusterDF = FullReord.iloc[:FailingRow , :FailingRow]
-        RemainingDF = FullReord.iloc[FailingRow: , FailingRow:]
-        break
+        #ClusterDF = FullReord.iloc[:FailingRow , :FailingRow]
+        #RemainingDF = FullReord.iloc[FailingRow: , FailingRow:]
+        #break
