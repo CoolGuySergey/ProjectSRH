@@ -37,7 +37,7 @@ matplotlib.use('Agg')
 # Functions for reading in fasta (wrapped or unwrapped)
 # Functions for partitioning input alignment
 
-            
+
 def ReadSeq(Path):
 
     """
@@ -68,9 +68,6 @@ def ReadSeq(Path):
             CurrentSeq += Line.upper()
 
         SeqDict[CurrentID] = CurrentSeq.upper()
-        
-        #if not set(CurrentSeq).issubset(set("CGAT-")):
-            #raise ValueError('Sorry. Alignment seems to contain amino acids.')
     
     return SeqDict
 
@@ -113,6 +110,7 @@ def DivergenceMtx(x, y):
     In: (2 items) Strings where each string is seq in seq-pair.
     Out: (1 item) 4*4 numpy array representing divergence matrix, m.
     '''
+    
     if x == y:
         raise ValueError("Sorry. Caught duplicate sequences.")
     
@@ -125,8 +123,8 @@ def DivergenceMtx(x, y):
     
     # array[:, None] smears array vertically
     # the other way round smears array horizontally
-    # i.e. ax and ay will be 4 col wide and as tall as your seq is long
-    # i.e. ax and ay  essentially represent the seq in a one-hot matrix
+    # i.e. ax and ay will be 4 col wide and as tall as seq is long
+    # i.e. ax and ay essentially represent seq as one-hot matrix
 
     FinalMatrix = np.dot(ay.T, ax)
     # len*4.T into len*4 = 4*len into len*4
@@ -364,87 +362,152 @@ def Broadcast2Matrix(StatsList, SeqDict):
 #          "d" : [score with e]
 
 
-def MaskedHeatmap(dataframe, Alpha, filename):
+def MaskedCluster(Dataframe, Alpha, Filename):
     
     '''
     Broadcast string of p-values to dataframe.
     
     In: (3 items) Dataframe to visualise, filename of png image, significance level alpha.
-    Out: (2 item) Boolean dataframe and re-ordered indices post-clustering. Also saves jpg to cwd.
+    Out: (1 item) Boolean dataframe post-clustering. Also saves jpg to cwd.
     '''
 
     # Initialise with masks and palletes:
-    boolean = dataframe < Alpha
-    FailCounts = (boolean.sum().sum())/2
-    # Counting True so counting fails
-    # print(f"Fail Count: {FailCounts} pairs fail test")
+    Boolean = Dataframe < Alpha
     
     cmap = sns.diverging_palette(240, 10, n=2)
-    cg = sns.clustermap(boolean, method='complete', metric='hamming', cmap=cmap, yticklabels=1, xticklabels=1)
+    cg = sns.clustermap(Boolean, method='complete', metric='hamming', cmap=cmap, yticklabels=1, xticklabels=1)
 
-    # TRY: adding a suborder column to df then categorising rows with
-    # species_colors = df.suborder.map({
-    #     'whatever1' : 'blue;,
-    #     'whatever2' : 'red',
-    #     'whatever3' : 'green',
-    # })
-    # sns.clustermap( ... , row_colors=suborder_colors)
-
+    # Aesthetics and plotting
     # Font sizes:
     cg.ax_heatmap.set_xticklabels(cg.ax_heatmap.get_xmajorticklabels(), fontsize=1.75)
     cg.ax_heatmap.set_yticklabels(cg.ax_heatmap.get_ymajorticklabels(), fontsize=1.75)
-
     # Hide unnecessaries:
     cg.ax_row_dendrogram.set_visible(False) # Hide 'trees'
     cg.ax_col_dendrogram.set_visible(False) # Hide 'trees'
     cg.cax.set_visible(False) # Hide colour bar
-
     # Resolution:
-    cg.savefig(filename, format="jpg", dpi=450)
-    #plt.show()
+    cg.savefig(Filename, format="jpg", dpi=450)
+    # plt.show()
 
-    # return boolean, cg.dendrogram_row.reordered_ind
+    # Return Reordered Boolean Dataframe
+    RowReord = Boolean.iloc[cg.dendrogram_row.reordered_ind]
+    FullReord = RowReord[[list(RowReord.columns)[x] for x in cg.dendrogram_row.reordered_ind]]
 
+    return FullReord
 
 #========================================================================
 
-#RowReord = boolean.iloc[cg.dendrogram_row.reordered_ind]
-#FullReord = RowReord[[list(dataframerowreord.columns)[x] for x in cg.dendrogram_row.reordered_ind]]
-# Reshuffle to look like this:
-#        >Seq1  >Seq3  >Seq2  >Seq4
-# >Seq1  False  False   True   True
-# >Seq3  False  False   True   True
-# >Seq2   True   True  False  False
-# >Seq4   True   True  False  False
 
-#Benchmark = 1
-
-# check for first 4*4
-# expand to 5*5, 6*6, 7*7 etc
-
-# while allfails/allcomps < benchmark
-# if any sequence fails more than %benchmark:
-#     drop sequence
-# else:
-#     add seqeunce
-
-# i.e. failing rogues are dismissed before the cluster is assessed for maturity
+# EXTRACTING CLUSTERS
+# Functions for extracting out clusters
+# Functions for writing cluster seqs to new fasta
 
 
-#FailingPositions = [i for i, AssymTrue in enumerate(list(FullReord.iloc[:, 0])) if AssymTrue]
-# Take the first col, FullReord.iloc[:, 0]
-# Give me positions of all True's (fails)
+def ExtractCluster(AllClusterDF, Benchmark):
 
-#for FailCount, FailingRow in enumerate(FailingPositions):
-    # print(f"This is the {FailCount}th row to have failed")
-    # print(f"The failing row is the {FailingRow}th row")
+    '''
+    Write out bottom right cluster to CSV file.
+
+    In: (2 items) Reordered dataframe, benchmark as float.
+    Out: (1 item) Dataframe containing bottom right cluster.
+    '''
+
+    # AllClusterDF now looks like this:
+    #        >Seq1  >Seq3  >Seq2  >Seq4
+    # >Seq1  False  False   True   True
+    # >Seq3  False  False   True   True
+    # >Seq2   True   True  False  False
+    # >Seq4   True   True  False  False
+
+    # AllClusterDF.iloc[-2, -1:] is the second last row, last column
+    # i.e. first meaningful score at bottom right of clustermark
+    # AllClusterDF.iloc[-3, -2:] is the next row up, excluding main diag
+
+    Benchmark = 0.8
+
+    FailCount = sum(sum(AllClusterDF.iloc[-4:, -4:].to_numpy()))/2
+    # AllClusterDF.iloc[-4:, -4:] is the bottom-right quartet
+    # FailCount initialised to that of bottom-right quartet
+    AllComps = 6
+    # There has been 6 comparisons thus far within bottom-right quartet
+    Latch = -4
+    # AllClusterDF.iloc[-5, -4:] is the 5th seq's scores  with the quartet
+    # len(AllClusterDF.iloc[-5, -4:]) = 4
     
-    #MaxFails = int((1 - Benchmark)*(FailingRow+1)) # int rounds down
-    # print(f"At the {FailingRow}th position there are {FailingRow+1} seqs in this cluster.")
-    # print(f"I'm accepting no more than {MaxFails} fails")
+    if FailCount > round((1-Benchmark)*AllComps):
+        print("Starter quartet failed benchmark.")
+        FailCount = sum(sum(AllClusterDF.iloc[-5:, -5:].to_numpy()))/2
+        AllComps = 10
+        Latch = -5
+        
+    if FailCount > round((1-Benchmark)*AllComps):
+        print("Starter quartet failed.")
+        
+    while FailCount <= round((1-Benchmark)*AllComps):
+        Latch -= 1
+        CurrentRow = AllClusterDF.iloc[Latch, Latch+1:]
+        NewFails = sum(CurrentRow)
 
-    #if FailCount >= MaxFails:
-    # Nip off cluster. Remove row/col associated with cluster for next iteration.
-        #ClusterDF = FullReord.iloc[:FailingRow , :FailingRow]
-        #RemainingDF = FullReord.iloc[FailingRow: , FailingRow:]
-        #break
+        FailCount += NewFails       # Update FailCount
+        AllComps += len(CurrentRow) # Update Cluster size
+
+        print(f"{-Latch-4} rows above seed.")
+        print(f"{FailCount} fails and {AllComps} comps thus far.")
+        print(f"Max fail is {round(1-Benchmark)*AllComps}.")
+    
+    # Latest CurrentRow is the row that failied
+    # Nip off cluster before starting next iteration.
+    ClusterDF = AllClusterDF.iloc[Latch+1: , Latch+1:]
+    print("Wrote Cluster of "
+    AllClusterDF = AllClusterDF.iloc[:Latch+1, :Latch+1]
+
+          
+def WriteCluster(ClusterDF, SeqDict, WritePath):
+
+    """
+    Reads wanted seqs from Cluster, writes appropriate seqs to WritePath."
+    
+    In: (3 items) Dataframe of seqs in cluster
+                  SeqDict containing seqs
+                  WritePath to new fasta
+    Out: (1 item) Fasta file with selected entries.
+    """
+    
+    df = df.reset_index(level='family')
+    df = df.set_index(['db_id']).sort_index()
+    df.index = '>' + df.index.astype(str)
+
+    NameDict = {}
+    for index, row in df.iterrows():
+        CommonName = f">{row['species']} ({row['family']})"
+        NameDict[index] = CommonName
+
+    with open(str(ReadPath), "r") as filein:
+        fasta = [i.split('\n') for i in filein.read().strip().split('\n\n')]
+    SeqIDs = fasta[0][::2]
+    Seqs = fasta[0][1::2]
+    SeqsDict = dict(zip(SeqIDs, Seqs))
+
+    FastaOut = open(WritePath, "a")
+    for db_id, NewName in NameDict.items():
+        FastaOut.write(NewName + '\n')
+        FastaOut.write(SeqsDict[db_id] + '\n')
+    FastaOut.close()
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# For Use in Dev:
+
+ExDict = ReadSeq("94Seq_Supermatrix.fasta")
+AllPairs = list(ite.combinations(ExDict.keys(), 2))
+AllBowkers = []
+for pair in AllPairs:
+    x, y = ExDict[pair[0]], ExDict[pair[1]]
+    m = DivergenceMtx(x, y)
+    BowkersStat, BowkersDf = list(Bowkers(m))
+    BowkersPval = pval(BowkersStat, BowkersDf)
+    AllBowkers.append(BowkersPval)
+AllBowkersMtx = Broadcast2Matrix(AllBowkers, ExDict)
+BowkersAlpha = SequentialBonferroni(AllBowkers)
+PlaceHolder = MaskedCluster(AllBowkersMtx, BowkersAlpha, "test.jpg")
+AllClusterDF = PlaceHolder

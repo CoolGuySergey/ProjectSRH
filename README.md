@@ -26,6 +26,11 @@ There are two ways to use SRHClusterMapper:
 python scripts/SRHClustermapper.py --input <in_file>
 ```
 
+To switch on cluster extraction, with purity benchmark set to 80%: (i.e. within output clusters, at least 80% of all pairwise-comparisons are passing)
+```
+python scripts/SRHClustermapper.py --input <in_file> --benchmark 0.8
+```
+
 To switch off partitioning:
 ```
 python scripts/SRHClustermapper.py --input <in_file> --partition 0
@@ -38,7 +43,7 @@ python scripts/SRHClustermapper.py --input <in_file> --alpha 0.05
 
 Important:
 1. The three tests and the three conditions (SRH) do not map one-to-one (see screenshot of landing page above).
-2. Invalid pairs occur when a particular pair of sequences are identical or do not have overlapping non-gap sites in theM (off-diagonals sum to 0 in divergence matrix m).
+2. Invalid pairs occur when a particular pair of sequences are identical or do not have overlapping non-gap sites in them (off-diagonals sum to 0 in divergence matrix m).
 
 REQUIREMENTS
 ===

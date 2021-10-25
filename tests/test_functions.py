@@ -33,9 +33,6 @@ def test_Preprocessing():
         '>NC_037200',
     ]
     
-    with pytest.raises(ValueError):
-        ReadSeq("AAExample.fa")
-
     assert len(CodonSplitter(ReadSeq("Example.fa"))) == 3
 
     
@@ -62,13 +59,12 @@ def test_SymmetryTests():
     assert BowkersPval == 2.5590610561176952e-05
     assert StuartsPval == 1.264401357392586e-06
     assert AbabnehsPval == 0.8500043787468997
-
+    # Data from "Identifying Optimal Models of Evolution" Jermiin 2017
     
 #========================================================================
 
 
 # DATA VISUALISATION
-
 
 def test_DataVisualisation():
 
@@ -97,8 +93,5 @@ def test_DataVisualisation():
         BowkersStat, BowkersDf = list(Bowkers(m))
         BowkersPval = pval(BowkersStat, BowkersDf)
         AllBowkers.append(BowkersPval)
-
-    assert len(Broadcast2Matrix(AllBowkers, ExDict)) == 4
-
-    # It's surprisingly difficult to eyeball...
-    # but seq1 & seq3 form a cluster, seq2 & seq4 form a cluster
+    AllBowkersMtx = Broadcast2Matrix(AllBowkers, ExDict)
+    assert len(AllBowkersMtx) == 4

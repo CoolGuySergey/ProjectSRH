@@ -52,11 +52,10 @@ def run(args):
         AllStuarts = []
         AllAbabnehs = []
 
-        #paircount = 0
+        # Start looping through sequence pairs to buil DivergenceMtx
+        # All three tests based on same DivergenceMtx
         nancount = 0
         for pair in tqdm(AllPairs):
-            #paircount += 1
-            #print(paircount)
             
             x, y = SeqDict[pair[0]], SeqDict[pair[1]]
             m = DivergenceMtx(x, y)
@@ -71,31 +70,34 @@ def run(args):
                 continue
 
             BowkersStat, BowkersDf = list(Bowkers(m))
-                
             BowkersPval = pval(BowkersStat, BowkersDf)
+            AllBowkers.append(BowkersPval)
+            
             StuartsStat, StuartsDf = Stuarts(m), 3
             StuartsPval = pval(StuartsStat, StuartsDf)
+            AllStuarts.append(StuartsPval)
+            
             AbabnehsStat, AbabnehsDf = Ababnehs(BowkersStat, BowkersDf, StuartsStat), BowkersDf-3
             AbabnehsPval = pval(AbabnehsStat, AbabnehsDf)
-            AllBowkers.append(BowkersPval)
-            AllStuarts.append(StuartsPval)
             AllAbabnehs.append(AbabnehsPval)
+        # End looping through sequence pairs
 
+        # Print three matrices to screen
         AllBowkersMtx = Broadcast2Matrix(AllBowkers, SeqDict)
-        AllStuartsMtx = Broadcast2Matrix(AllStuarts, SeqDict)
-        AllAbabnehsMtx = Broadcast2Matrix(AllAbabnehs, SeqDict)
-
         print('\n')
         print("All Bowkers/Maximal symmetry stats:")
         print(AllBowkersMtx)
+
+        AllStuartsMtx = Broadcast2Matrix(AllStuarts, SeqDict)
         print('\n')
         print("All Stuarts/Marginal symmetry stats:")
         print(AllStuartsMtx)
         print('\n')
+
+        AllAbabnehsMtx = Broadcast2Matrix(AllAbabnehs, SeqDict)
         print("All Ababneh/Internal symmetry stats:")
         print(AllAbabnehsMtx)
         print('\n')
-        # Print the three matrices to screen
 
         if Alpha == 0:
             BowkersAlpha = SequentialBonferroni(AllBowkers)
@@ -106,16 +108,16 @@ def run(args):
 
         if Partition:
             print(f"Printing Clustermaps for all three tests...")
-            MaskedHeatmap(AllBowkersMtx, BowkersAlpha, f"{PathToInputAln}_Codon{DictName+1}_Bowkers_Alpha{BowkersAlpha:.2f}.jpg")
-            MaskedHeatmap(AllStuartsMtx, StuartsAlpha, f"{PathToInputAln}_Codon{DictName+1}_Stuarts_Alpha{StuartsAlpha:.2f}.jpg")
-            MaskedHeatmap(AllAbabnehsMtx, AbabnehsAlpha, f"{PathToInputAln}_Codon{DictName+1}_Ababnehs_Alpha{AbabnehsAlpha:.2f}.jpg")
+            MaskedCluster(AllBowkersMtx, BowkersAlpha, f"{PathToInputAln}_Codon{DictName+1}_Bowkers.jpg")
+            MaskedCluster(AllStuartsMtx, StuartsAlpha, f"{PathToInputAln}_Codon{DictName+1}_Stuarts.jpg")
+            MaskedCluster(AllAbabnehsMtx, AbabnehsAlpha, f"{PathToInputAln}_Codon{DictName+1}_Ababnehs.jpg")
             print(f"All three tests complete for partition {DictName+1} of alignment.")
             print('\n')
         else:
             print(f"Printing Clustermaps for all three tests...")
-            MaskedHeatmap(AllBowkersMtx, BowkersAlpha, f"{PathToInputAln}_unpartitioned_Bowkers_Alpha{BowkersAlpha:.2f}.jpg")
-            MaskedHeatmap(AllStuartsMtx, StuartsAlpha, f"{PathToInputAln}_unpartitioned_Stuarts_Alpha{StuartsAlpha:.2f}.jpg")
-            MaskedHeatmap(AllAbabnehsMtx, AbabnehsAlpha, f"{PathToInputAln}_unpartitioned_Ababnehs_Alpha{AbabnehsAlpha:.2f}.jpg")
+            MaskedCluster(AllBowkersMtx, BowkersAlpha, f"{PathToInputAln}_unpartitioned_Bowkers.jpg")
+            MaskedCluster(AllStuartsMtx, StuartsAlpha, f"{PathToInputAln}_unpartitioned_Stuarts.jpg")
+            MaskedCluster(AllAbabnehsMtx, AbabnehsAlpha, f"{PathToInputAln}_unpartitioned_Ababnehs.jpg")
             print(f"All three tests complete for unpartitioned alignment.")
             print('\n')
         
@@ -166,6 +168,8 @@ def main():
     parser.add_argument("-p", "--partition", help="If true, SRHClusterMapper will partition input data into three codon positions and perform SRH tests on them separately. Defaults to False.", type=str2bool, default=False, dest="p")
     
     parser.add_argument("-a", "--alpha", help="Significance value. If given a custom/arbitrary value (e.g. 0.05), SRHClusterMapper will not perform Sequential Bonferroni correction. By default behaviour, Sequential Bonferroni correction will be performed to seek a significance value lower than 0.05. i.e. Leaving this option to default  will result in more sequences passing the symmetry tests.", default=0, dest="a", type=float)
+
+    parser.add_argument("-b", "--benchmark", help="Benchmark / minimal purity of clusters in float representation. SRHClusterMapper will write out clusters where at least {benchmark*100} percent of all pairwise comparisons are passing pairs. Default off, that is, leaving this option to default will result in no clusters being written out.", default=0, dest="b", type=float)
     
     parser.set_defaults(func=run)
     
