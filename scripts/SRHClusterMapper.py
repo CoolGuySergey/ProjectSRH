@@ -24,6 +24,17 @@ from functions import *
 #========================================================================
 
 
+# WARNING FILTERS
+
+simplefilter("ignore", ClusterWarning)
+# Supresses warning re. X1 is too close to X1.T. Using sns.clustermap to make use of its ability to do map-permutations. It probably doesn't see that many symmetric matrices.
+simplefilter("ignore", UserWarning)
+# Supresses warnig re. max y and min y values being same for the data series.
+
+
+#========================================================================
+
+
 # MAIN BODY
 
 def run(args):
@@ -31,6 +42,7 @@ def run(args):
     PathToInputAln = args.i
     Partition = args.p
     Alpha = args.a
+    Benchmark = args.b
 
     if Partition:
         ListOfDicts = CodonSplitter(ReadSeq(PathToInputAln))
@@ -40,11 +52,13 @@ def run(args):
     for DictName, SeqDict in enumerate(ListOfDicts):
         
         if Partition:
-            print('\n')
-            print(f"Performing all three tests on codon{DictName+1}")
+            TestName = f"codon{DictName+1}"
         else:
-            print(f"Performing all three tests on unpartitioned alignment")
+            TestName = "unpartitioned"
             SeqDict = ListOfDicts
+
+        print('\n')
+        print(f"Performing all three tests on {TestName} alignment.")
 
         AllPairs = list(itertools.combinations(SeqDict.keys(), 2))
 
@@ -106,40 +120,52 @@ def run(args):
         else:
             BowkersAlpha = StuartsAlpha = AbabnehsAlpha = Alpha
 
-        if Partition:
-            print(f"Printing Clustermaps for all three tests...")
-            MaskedCluster(AllBowkersMtx, BowkersAlpha, f"{PathToInputAln}_Codon{DictName+1}_Bowkers.jpg")
-            MaskedCluster(AllStuartsMtx, StuartsAlpha, f"{PathToInputAln}_Codon{DictName+1}_Stuarts.jpg")
-            MaskedCluster(AllAbabnehsMtx, AbabnehsAlpha, f"{PathToInputAln}_Codon{DictName+1}_Ababnehs.jpg")
-            print(f"All three tests complete for partition {DictName+1} of alignment.")
-            print('\n')
-        else:
-            print(f"Printing Clustermaps for all three tests...")
-            MaskedCluster(AllBowkersMtx, BowkersAlpha, f"{PathToInputAln}_unpartitioned_Bowkers.jpg")
-            MaskedCluster(AllStuartsMtx, StuartsAlpha, f"{PathToInputAln}_unpartitioned_Stuarts.jpg")
-            MaskedCluster(AllAbabnehsMtx, AbabnehsAlpha, f"{PathToInputAln}_unpartitioned_Ababnehs.jpg")
-            print(f"All three tests complete for unpartitioned alignment.")
-            print('\n')
-        
+        print(f"Printing Clustermaps for all three tests...")
+        print('\n')
+        BowkersAllClusterDF = MaskedCluster(AllBowkersMtx, BowkersAlpha, f"{PathToInputAln}_{TestName}_Bowkers.jpg")
+        StuartsAllClusterDF = MaskedCluster(AllStuartsMtx, StuartsAlpha, f"{PathToInputAln}_{TestName}_Stuarts.jpg")
+        AbabnehsAllClusterDF = MaskedCluster(AllAbabnehsMtx, AbabnehsAlpha, f"{PathToInputAln}_{TestName}_Ababnehs.jpg")
+        print(f"All three tests complete for {testname} alignment.")
+        print('\n')
         print(f"Three clustermaps of all pairwise scores have been written to {PathToInputAln}.")
         print('\n')
         print("="*79)
-        # Save three heatmaps to where the input alignment is
 
+        #Leftover = BowkersAllClusterDF
+        ListOfStatNames = ["Bowkers", "Stuarts", "Ababnehs"]
+        ListOfDFs = BowkersAllClusterDF, StuartsAllClusterDF, AbabnehsAllClusterDF
+        StatNameDict = dict(zip(ListOfStatNames, ListOfDFs))
+        
+        for StatName, Leftover in StatNameDict.items():
+            print('\n')
+            print(f'Extracting {StatName} clusters:')
+            print('\n')
+            # Write clusters to OutDir, mkdir if it is yet to exist
+            Outdir = f"{PathToInputAln}_{TestName}_{StatName}Clusters"
+            if not os.path.exists(Outdir):
+                os.mkdir(Outdir)
+            
+            ClusterNo = 0
+            while len(Leftover) > 4:
+                ClusterNo += 1
+                NewCluster, Leftover = ExtractCluster(Leftover, Benchmark)
+                WriteCluster(NewCluster, SeqDict, f"{Outdir}/Cluster{ClusterNo}_{len(NewCluster)}Seqs.fasta")
+                print(f"Wrote cluster containing {len(NewCluster)} seqs.")
+                print(f"There are {len(Leftover)} seqs left.")
+                print('\n')
+            else:
+                if len(Leftover) > 0:
+                    RemovedSeqs = Leftover.columns.tolist()
+                    print(f"Removed Leftover Seqs: {RemovedSeqs}")
+            print(f"{StatName} cluster extraction complete.")
+            print('\n')
+            print("="*79)
+                    # Same behaviour as removing failing quartets
+                    # In case of small blocks @ upper left corner
+        
         if not Partition:
             break
         # loop over single dict while keeping enumerate() for paritioning
-
-
-#========================================================================
-
-
-# WARNING FILTERS
-
-simplefilter("ignore", ClusterWarning)
-# Supresses warning re. X1 is too close to X1.T. Using sns.clustermap to make use of its ability to do map-permutations. It probably doesn't see that many symmetric matrices.
-simplefilter("ignore", UserWarning)
-# Supresses warnig re. max y and min y values being same for the data series.
 
 
 #========================================================================

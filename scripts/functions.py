@@ -386,7 +386,7 @@ def MaskedCluster(Dataframe, Alpha, Filename):
     cg.ax_col_dendrogram.set_visible(False) # Hide 'trees'
     cg.cax.set_visible(False) # Hide colour bar
     # Resolution:
-    cg.savefig(Filename, format="jpg", dpi=450)
+    # cg.savefig(Filename, format="jpg", dpi=450)
     # plt.show()
 
     # Return Reordered Boolean Dataframe
@@ -394,6 +394,7 @@ def MaskedCluster(Dataframe, Alpha, Filename):
     FullReord = RowReord[[list(RowReord.columns)[x] for x in cg.dendrogram_row.reordered_ind]]
 
     return FullReord
+
 
 #========================================================================
 
@@ -409,7 +410,8 @@ def ExtractCluster(AllClusterDF, Benchmark):
     Write out bottom right cluster to CSV file.
 
     In: (2 items) Reordered dataframe, benchmark as float.
-    Out: (1 item) Dataframe containing bottom right cluster.
+    Out: (2 item) Dataframe containing bottom right cluster.
+                  Dataframe containign all remaining seqs.
     '''
 
     # AllClusterDF now looks like this:
@@ -422,77 +424,75 @@ def ExtractCluster(AllClusterDF, Benchmark):
     # AllClusterDF.iloc[-2, -1:] is the second last row, last column
     # i.e. first meaningful score at bottom right of clustermark
     # AllClusterDF.iloc[-3, -2:] is the next row up, excluding main diag
-
-    Benchmark = 0.8
-
+    
     FailCount = sum(sum(AllClusterDF.iloc[-4:, -4:].to_numpy()))/2
-    # AllClusterDF.iloc[-4:, -4:] is the bottom-right quartet
     # FailCount initialised to that of bottom-right quartet
     AllComps = 6
     # There has been 6 comparisons thus far within bottom-right quartet
     Latch = -4
-    # AllClusterDF.iloc[-5, -4:] is the 5th seq's scores  with the quartet
-    # len(AllClusterDF.iloc[-5, -4:]) = 4
     
-    if FailCount > round((1-Benchmark)*AllComps):
+    # Seek passing starter quartet
+    StarterLatch = 0
+    while FailCount > round((1-Benchmark)*AllComps):
+        StarterLatch += 1
+        FailCount = sum(sum(AllClusterDF.iloc[-4-StarterLatch:-StarterLatch, -4-StarterLatch:-StarterLatch].to_numpy()))/2
+        #print(f"{StarterLatch} dropped-seqs above failing quartet.")
+
+    # If the previous loop has been triggered
+    # Remove seqs that causes failing starter quartets
+    if StarterLatch > 0:
+        RemovedSeqs = AllClusterDF.iloc[-StarterLatch:, -StarterLatch:].columns.tolist()
+        AllClusterDF = AllClusterDF.iloc[:-StarterLatch, :-StarterLatch]
         print("Starter quartet failed benchmark.")
-        FailCount = sum(sum(AllClusterDF.iloc[-5:, -5:].to_numpy()))/2
-        AllComps = 10
-        Latch = -5
+        print(f"Shuffled to starter quartet that passes benchmark.")
+        print(f"Removed intervening seqs: {RemovedSeqs}")
+    else:
+        print("Starter quartet passed benchmark.")
         
-    if FailCount > round((1-Benchmark)*AllComps):
-        print("Starter quartet failed.")
-        
+    # Expand passing starter quartet
+    print("Expanding starter quartet into cluster.")
     while FailCount <= round((1-Benchmark)*AllComps):
         Latch -= 1
+
+        # (final) cluster reached end of map
+        if Latch == -len(AllClusterDF)-1:
+            break
+        
         CurrentRow = AllClusterDF.iloc[Latch, Latch+1:]
         NewFails = sum(CurrentRow)
-
         FailCount += NewFails       # Update FailCount
         AllComps += len(CurrentRow) # Update Cluster size
-
-        print(f"{-Latch-4} rows above seed.")
-        print(f"{FailCount} fails and {AllComps} comps thus far.")
-        print(f"Max fail is {round(1-Benchmark)*AllComps}.")
+        #print(f"{-Latch-4} rows above starter quartet.")
+        #print(f"{FailCount} fails and {AllComps} comps thus far.")
+        #print(f"Max fail is {round((1-Benchmark)*AllComps)}.")
     
     # Latest CurrentRow is the row that failied
     # Nip off cluster before starting next iteration.
     ClusterDF = AllClusterDF.iloc[Latch+1: , Latch+1:]
-    print("Wrote Cluster of "
-    AllClusterDF = AllClusterDF.iloc[:Latch+1, :Latch+1]
+    RemainingDF = AllClusterDF.iloc[:Latch+1, :Latch+1]
+
+    return ClusterDF, RemainingDF
 
           
 def WriteCluster(ClusterDF, SeqDict, WritePath):
 
     """
-    Reads wanted seqs from Cluster, writes appropriate seqs to WritePath."
+    Reads wanted seqs from Cluster, writes appropriate seqs to WritePath.
     
     In: (3 items) Dataframe of seqs in cluster
                   SeqDict containing seqs
                   WritePath to new fasta
     Out: (1 item) Fasta file with selected entries.
     """
+
+    WantedSeqNames = ClusterDF.columns.tolist()
     
-    df = df.reset_index(level='family')
-    df = df.set_index(['db_id']).sort_index()
-    df.index = '>' + df.index.astype(str)
-
-    NameDict = {}
-    for index, row in df.iterrows():
-        CommonName = f">{row['species']} ({row['family']})"
-        NameDict[index] = CommonName
-
-    with open(str(ReadPath), "r") as filein:
-        fasta = [i.split('\n') for i in filein.read().strip().split('\n\n')]
-    SeqIDs = fasta[0][::2]
-    Seqs = fasta[0][1::2]
-    SeqsDict = dict(zip(SeqIDs, Seqs))
-
     FastaOut = open(WritePath, "a")
-    for db_id, NewName in NameDict.items():
-        FastaOut.write(NewName + '\n')
-        FastaOut.write(SeqsDict[db_id] + '\n')
+    for WantedSeq in WantedSeqNames:
+        FastaOut.write(WantedSeq + '\n')
+        FastaOut.write(SeqDict[WantedSeq] + '\n')
     FastaOut.close()
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -510,4 +510,14 @@ for pair in AllPairs:
 AllBowkersMtx = Broadcast2Matrix(AllBowkers, ExDict)
 BowkersAlpha = SequentialBonferroni(AllBowkers)
 PlaceHolder = MaskedCluster(AllBowkersMtx, BowkersAlpha, "test.jpg")
+
+PathToInputAln = "94Seq_Supermatrix.fasta"
+testname = "unpartitioned"
+Benchmark = 0.8
 AllClusterDF = PlaceHolder
+BowkersAllClusterDF = PlaceHolder
+SeqDict = ExDict
+
+ax = g.ax_heatmap
+ax.add_patch(mpatches.Rectangle((3, 4), 2, 1, fill=False, edgecolor='blue', lw=3))
+plt.show()
