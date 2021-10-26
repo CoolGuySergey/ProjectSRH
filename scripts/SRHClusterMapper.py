@@ -146,18 +146,24 @@ def run(args):
             
             ClusterNo = 0
             ClusterDict = dict()
-            while len(Leftover) > 4:
+            while len(Leftover) >= 4:
                 ClusterNo += 1
                 NewCluster, Leftover = ExtractCluster(Leftover, Benchmark)
-                WriteCluster(NewCluster, SeqDict, f"{Outdir}/Cluster{ClusterNo}_{len(NewCluster)}Seqs.fasta")
-                print(f"Wrote cluster containing {len(NewCluster)} seqs.")
-                print(f"There are {len(Leftover)} seqs left.")
-                print('\n')
 
-                # Build ClusterDict to demarcate on map
-                AnchorSeq = NewCluster.columns.tolist()[0]
-                ClusterDict[AnchorSeq] = len(NewCluster)
-                
+                if len(NewCluster) >= 4:
+                    WriteCluster(NewCluster, SeqDict, f"{Outdir}/Cluster{ClusterNo}_{len(NewCluster)}Seqs.fasta")
+                    print(f"Wrote cluster containing {len(NewCluster)} seqs.")
+                    print(f"There are {len(Leftover)} seqs left.")
+                    print('\n')
+
+                    # Build ClusterDict to demarcate on map
+                    AnchorSeq = NewCluster.columns.tolist()[0]
+                    ClusterDict[AnchorSeq] = len(NewCluster)
+                else:
+                    # Do not accept leftover clusters smaller than 4s
+                    RemovedSeqs = NewCluster.columns.tolist()
+                    print(f"Removed Leftover Seqs: {RemovedSeqs}")
+                    
             else:
                 if len(Leftover) > 0:
                     RemovedSeqs = Leftover.columns.tolist()
@@ -171,7 +177,7 @@ def run(args):
             # Mark all clusters on cg generated from before
             cg = CgDict[StatName]
             df = DFDict[StatName]
-            DemarcateCluster(cg, df, ClusterDict, Outdir)
+            DemarcateCluster(cg, df, ClusterDict, f"{Outdir}.jpg")
             print(f"Three clustermaps of all pairwise scores have been written to location of {PathToInputAln}.")
             print('\n')
             print("="*79)

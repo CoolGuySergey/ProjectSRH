@@ -442,6 +442,7 @@ def ExtractCluster(AllClusterDF, Benchmark):
         print("Starter quartet failed benchmark.")
         print(f"Shuffled to starter quartet that passes benchmark.")
         print(f"Removed intervening seqs: {RemovedSeqs}")
+        
     else:
         print("Starter quartet passed benchmark.")
         
@@ -450,8 +451,10 @@ def ExtractCluster(AllClusterDF, Benchmark):
     while FailCount <= round((1-Benchmark)*AllComps):
         Latch -= 1
 
-        # (final) cluster reached end of map
-        if Latch == -len(AllClusterDF)-1:
+        # Break if (final) cluster reached end of map
+        # Break if leftover cluster is smaller than a quartet
+        # (rejection happens in SRHClusterMapper.py)
+        if Latch == -len(AllClusterDF)-1 or len(AllClusterDF) < 4:
             break
         
         CurrentRow = AllClusterDF.iloc[Latch, Latch+1:]
@@ -494,18 +497,21 @@ def WriteCluster(ClusterDF, SeqDict, WritePath):
 
 # For Use in Dev:
 
-ExDict = ReadSeq("94Seq_Supermatrix.fasta")
-AllPairs = list(ite.combinations(ExDict.keys(), 2))
-AllBowkers = []
-for pair in AllPairs:
-    x, y = ExDict[pair[0]], ExDict[pair[1]]
-    m = DivergenceMtx(x, y)
-    BowkersStat, BowkersDf = list(Bowkers(m))
-    BowkersPval = pval(BowkersStat, BowkersDf)
-    AllBowkers.append(BowkersPval)
-AllBowkersMtx = Broadcast2Matrix(AllBowkers, ExDict)
-BowkersAlpha = SequentialBonferroni(AllBowkers)
-df, cg = MaskedCluster(AllBowkersMtx, BowkersAlpha)
+#ExDict = ReadSeq("94Seq_Supermatrix.fasta")
+#AllPairs = list(ite.combinations(ExDict.keys(), 2))
+#AllBowkers = []
+#for pair in AllPairs:
+#    x, y = ExDict[pair[0]], ExDict[pair[1]]
+#    m = DivergenceMtx(x, y)
+#    BowkersStat, BowkersDf = list(Bowkers(m))
+#    BowkersPval = pval(BowkersStat, BowkersDf)
+#    AllBowkers.append(BowkersPval)
+#AllBowkersMtx = Broadcast2Matrix(AllBowkers, ExDict)
+#BowkersAlpha = SequentialBonferroni(AllBowkers)
+#
+#df, cg = MaskedCluster(AllBowkersMtx, BowkersAlpha)
+#ClusterDict = {">Galeruca daurica": 27}
+
 
 def DemarcateCluster(cg, df, ClusterDict, Filename):
 
@@ -519,9 +525,10 @@ def DemarcateCluster(cg, df, ClusterDict, Filename):
     Out: (1 item) Saves image.
     '''
     
-    #ax = cg.ax_heatmap
-    #for AnchorSeq, ClusterSize in ClusterDict.items():
-        #AnchorPos = df.index[AnchorSeq].tolist()
-        #ax.add_patch(mpatches.Rectangle((AnchorPos, AnchorPos), ClusterSize, ClusterSize, fill=False, edgecolor='yellow', lw=0.5))
+    ax = cg.ax_heatmap
+    for AnchorSeq, ClusterSize in ClusterDict.items():
+        # Identify upper left corner of box
+        AnchorPos = df.index.to_list().index(AnchorSeq)
+        ax.add_patch(mpatches.Rectangle((AnchorPos, AnchorPos), ClusterSize, ClusterSize, fill=False, edgecolor='yellow', lw=0.5))
 
-    cg.savefig("test.jpg", format="jpg", dpi=450)
+    cg.savefig(Filename, format="jpg", dpi=450)
