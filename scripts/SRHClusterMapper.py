@@ -120,32 +120,32 @@ def run(args):
         else:
             BowkersAlpha = StuartsAlpha = AbabnehsAlpha = Alpha
 
-        print(f"Printing Clustermaps for all three tests...")
-        print('\n')
-        BowkersAllClusterDF = MaskedCluster(AllBowkersMtx, BowkersAlpha, f"{PathToInputAln}_{TestName}_Bowkers.jpg")
-        StuartsAllClusterDF = MaskedCluster(AllStuartsMtx, StuartsAlpha, f"{PathToInputAln}_{TestName}_Stuarts.jpg")
-        AbabnehsAllClusterDF = MaskedCluster(AllAbabnehsMtx, AbabnehsAlpha, f"{PathToInputAln}_{TestName}_Ababnehs.jpg")
-        print(f"All three tests complete for {testname} alignment.")
-        print('\n')
-        print(f"Three clustermaps of all pairwise scores have been written to {PathToInputAln}.")
+        BowkersAllClusterDF, BowkersCg = MaskedCluster(AllBowkersMtx, BowkersAlpha)
+        StuartsAllClusterDF, StuartsCg = MaskedCluster(AllStuartsMtx, StuartsAlpha)
+        AbabnehsAllClusterDF, AbabnehsCg = MaskedCluster(AllAbabnehsMtx, AbabnehsAlpha)
+        print(f"All three tests complete for {TestName} alignment.")
         print('\n')
         print("="*79)
 
         #Leftover = BowkersAllClusterDF
         ListOfStatNames = ["Bowkers", "Stuarts", "Ababnehs"]
         ListOfDFs = BowkersAllClusterDF, StuartsAllClusterDF, AbabnehsAllClusterDF
-        StatNameDict = dict(zip(ListOfStatNames, ListOfDFs))
+        ListofCgs = BowkersCg, StuartsCg, AbabnehsCg
         
-        for StatName, Leftover in StatNameDict.items():
+        DFDict = dict(zip(ListOfStatNames, ListOfDFs))
+        CgDict = dict(zip(ListOfStatNames, ListofCgs))
+        
+        for StatName, Leftover in DFDict.items():
             print('\n')
             print(f'Extracting {StatName} clusters:')
             print('\n')
             # Write clusters to OutDir, mkdir if it is yet to exist
-            Outdir = f"{PathToInputAln}_{TestName}_{StatName}Clusters"
+            Outdir = f"{PathToInputAln}_{TestName}_{StatName}_Clusters"
             if not os.path.exists(Outdir):
                 os.mkdir(Outdir)
             
             ClusterNo = 0
+            ClusterDict = dict()
             while len(Leftover) > 4:
                 ClusterNo += 1
                 NewCluster, Leftover = ExtractCluster(Leftover, Benchmark)
@@ -153,11 +153,26 @@ def run(args):
                 print(f"Wrote cluster containing {len(NewCluster)} seqs.")
                 print(f"There are {len(Leftover)} seqs left.")
                 print('\n')
+
+                # Build ClusterDict to demarcate on map
+                AnchorSeq = NewCluster.columns.tolist()[0]
+                ClusterDict[AnchorSeq] = len(NewCluster)
+                
             else:
                 if len(Leftover) > 0:
                     RemovedSeqs = Leftover.columns.tolist()
                     print(f"Removed Leftover Seqs: {RemovedSeqs}")
             print(f"{StatName} cluster extraction complete.")
+            print('\n')
+
+            print(f"Printing {StatName} clustermap for {TestName} alignment.")
+            print('\n')
+            
+            # Mark all clusters on cg generated from before
+            cg = CgDict[StatName]
+            df = DFDict[StatName]
+            DemarcateCluster(cg, df, ClusterDict, Outdir)
+            print(f"Three clustermaps of all pairwise scores have been written to location of {PathToInputAln}.")
             print('\n')
             print("="*79)
                     # Same behaviour as removing failing quartets

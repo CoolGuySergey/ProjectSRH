@@ -362,20 +362,19 @@ def Broadcast2Matrix(StatsList, SeqDict):
 #          "d" : [score with e]
 
 
-def MaskedCluster(Dataframe, Alpha, Filename):
+def MaskedCluster(Dataframe, Alpha):
     
     '''
-    Broadcast string of p-values to dataframe.
+    Mask dataframe based on alpha and do row-col permutation.
     
-    In: (3 items) Dataframe to visualise, filename of png image, significance level alpha.
-    Out: (1 item) Boolean dataframe post-clustering. Also saves jpg to cwd.
+    In: (2 items) Dataframe to visualise, significance level alpha.
+    Out: (2 item) Boolean dataframe and cg post-clustering.
     '''
 
-    # Initialise with masks and palletes:
+    # Initialise
     Boolean = Dataframe < Alpha
-    
     cmap = sns.diverging_palette(240, 10, n=2)
-    cg = sns.clustermap(Boolean, method='complete', metric='hamming', cmap=cmap, yticklabels=1, xticklabels=1)
+    cg = sns.clustermap(Boolean, cmap=cmap, method='complete', metric='hamming', yticklabels=1, xticklabels=1)
 
     # Aesthetics and plotting
     # Font sizes:
@@ -385,15 +384,12 @@ def MaskedCluster(Dataframe, Alpha, Filename):
     cg.ax_row_dendrogram.set_visible(False) # Hide 'trees'
     cg.ax_col_dendrogram.set_visible(False) # Hide 'trees'
     cg.cax.set_visible(False) # Hide colour bar
-    # Resolution:
-    # cg.savefig(Filename, format="jpg", dpi=450)
-    # plt.show()
-
+    
     # Return Reordered Boolean Dataframe
     RowReord = Boolean.iloc[cg.dendrogram_row.reordered_ind]
     FullReord = RowReord[[list(RowReord.columns)[x] for x in cg.dendrogram_row.reordered_ind]]
 
-    return FullReord
+    return FullReord, cg
 
 
 #========================================================================
@@ -509,15 +505,23 @@ for pair in AllPairs:
     AllBowkers.append(BowkersPval)
 AllBowkersMtx = Broadcast2Matrix(AllBowkers, ExDict)
 BowkersAlpha = SequentialBonferroni(AllBowkers)
-PlaceHolder = MaskedCluster(AllBowkersMtx, BowkersAlpha, "test.jpg")
+df, cg = MaskedCluster(AllBowkersMtx, BowkersAlpha)
 
-PathToInputAln = "94Seq_Supermatrix.fasta"
-testname = "unpartitioned"
-Benchmark = 0.8
-AllClusterDF = PlaceHolder
-BowkersAllClusterDF = PlaceHolder
-SeqDict = ExDict
+def DemarcateCluster(cg, df, ClusterDict, Filename):
 
-ax = g.ax_heatmap
-ax.add_patch(mpatches.Rectangle((3, 4), 2, 1, fill=False, edgecolor='blue', lw=3))
-plt.show()
+    '''
+    Demarcate clusters based on info in ClusterDict and save image.
+    
+    In: (4 items) cg previously generated.
+                  df (fullReord) previously generated
+                  ClusterDict containing anchor (upperleft cell) and size.
+                  Filename of png image.
+    Out: (1 item) Saves image.
+    '''
+    
+    #ax = cg.ax_heatmap
+    #for AnchorSeq, ClusterSize in ClusterDict.items():
+        #AnchorPos = df.index[AnchorSeq].tolist()
+        #ax.add_patch(mpatches.Rectangle((AnchorPos, AnchorPos), ClusterSize, ClusterSize, fill=False, edgecolor='yellow', lw=0.5))
+
+    cg.savefig("test.jpg", format="jpg", dpi=450)
