@@ -79,7 +79,8 @@ def upload():
             i = InputPath
             p = request.form['Partition']
             a = float(request.form['Alpha'])
-
+            b = float(request.form['Benchmark'])
+            
         args = ArgsClass()
         args.p = SRHClusterMapper.str2bool(args.p)
 
