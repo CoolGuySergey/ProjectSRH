@@ -42,7 +42,7 @@ def run(args):
     PathToInputAln = args.i
     Partition = args.p
     Alpha = args.a
-    Benchmark = args.b
+    BenchmarkList = args.b
 
     if Partition:
         ListOfDicts = CodonSplitter(ReadSeq(PathToInputAln))
@@ -99,18 +99,19 @@ def run(args):
         # Print three matrices to screen
         AllBowkersMtx = Broadcast2Matrix(AllBowkers, SeqDict)
         print('\n')
-        print("All Bowkers/Maximal symmetry stats:")
-        print(AllBowkersMtx)
-
+        print("All Bowkers/Maximal symmetry tests complete.")
+        AllBowkersMtx.to_csv(f"{PathToInputAln}_{TestName}_AllBowkers.csv", index=False)
+        print('\n')
+        
         AllStuartsMtx = Broadcast2Matrix(AllStuarts, SeqDict)
         print('\n')
-        print("All Stuarts/Marginal symmetry stats:")
-        print(AllStuartsMtx)
+        print("All Stuarts/Marginal symmetry tests complete.")
+        AllStuartsMtx.to_csv(f"{PathToInputAln}_{TestName}_AllStuarts.csv", index=False)
         print('\n')
 
         AllAbabnehsMtx = Broadcast2Matrix(AllAbabnehs, SeqDict)
-        print("All Ababneh/Internal symmetry stats:")
-        print(AllAbabnehsMtx)
+        print("All Ababneh/Internal symmetry tests complete.")
+        AllAbabnehsMtx.to_csv(f"{PathToInputAln}_{TestName}_AllAbabnehs.csv", index=False)
         print('\n')
 
         if Alpha == 0:
@@ -123,11 +124,11 @@ def run(args):
         BowkersAllClusterDF, BowkersCg = MaskedCluster(AllBowkersMtx, BowkersAlpha)
         StuartsAllClusterDF, StuartsCg = MaskedCluster(AllStuartsMtx, StuartsAlpha)
         AbabnehsAllClusterDF, AbabnehsCg = MaskedCluster(AllAbabnehsMtx, AbabnehsAlpha)
+        
         print(f"All three tests complete for {TestName} alignment.")
         print('\n')
         print("="*79)
 
-        #Leftover = BowkersAllClusterDF
         ListOfStatNames = ["Bowkers", "Stuarts", "Ababnehs"]
         ListOfDFs = BowkersAllClusterDF, StuartsAllClusterDF, AbabnehsAllClusterDF
         ListofCgs = BowkersCg, StuartsCg, AbabnehsCg
@@ -135,54 +136,59 @@ def run(args):
         DFDict = dict(zip(ListOfStatNames, ListOfDFs))
         CgDict = dict(zip(ListOfStatNames, ListofCgs))
         
-        for StatName, Leftover in DFDict.items():
-            print('\n')
-            print(f'Extracting {StatName} clusters:')
-            print('\n')
-            # Write clusters to OutDir, mkdir if it is yet to exist
-            Outdir = f"{PathToInputAln}_{TestName}_{StatName}_Clusters"
-            if not os.path.exists(Outdir):
-                os.mkdir(Outdir)
-            
-            ClusterNo = 0
-            ClusterDict = dict()
-            while len(Leftover) >= 4:
-                ClusterNo += 1
-                NewCluster, Leftover = ExtractCluster(Leftover, Benchmark)
+        for StatName, AllClusterDF in DFDict.items():            
+            for Benchmark in BenchmarkList:
+                # Reinitialise for next loop
+                Leftover = AllClusterDF
+                ClusterNo = 0
+                ClusterDict = dict()
+                CurImage = CgDict[StatName]
+                CurDf = DFDict[StatName]
+                
+                print('\n')
+                print(f'Extracting {StatName} clusters:')
+                print(f'Current benchmark is {Benchmark}')
+                print('\n')
+                # Write clusters to OutDir, mkdir if it is yet to exist
+                Outdir = f"{PathToInputAln}_{TestName}_{StatName}_Clusters_B{Benchmark}"
+                if not os.path.exists(Outdir):
+                    os.mkdir(Outdir)
 
-                if len(NewCluster) >= 4:
-                    WriteCluster(NewCluster, SeqDict, f"{Outdir}/Cluster{ClusterNo}_{len(NewCluster)}Seqs.fasta")
-                    print(f"Wrote cluster containing {len(NewCluster)} seqs.")
-                    print(f"There are {len(Leftover)} seqs left.")
-                    print('\n')
+                while len(Leftover) >= 4:
+                    ClusterNo += 1
+                    NewCluster, Leftover = ExtractCluster(Leftover, Benchmark)
 
-                    # Build ClusterDict to demarcate on map
-                    AnchorSeq = NewCluster.columns.tolist()[0]
-                    ClusterDict[AnchorSeq] = len(NewCluster)
-                else:
-                    # Do not accept leftover clusters smaller than 4s
-                    RemovedSeqs = NewCluster.columns.tolist()
-                    print(f"Removed Leftover Seqs: {RemovedSeqs}")
+                    if len(NewCluster) >= 4:
+                        WriteCluster(NewCluster, SeqDict, f"{Outdir}/Cluster{ClusterNo}_{len(NewCluster)}Seqs.fasta")
+                        print(f"Wrote cluster containing {len(NewCluster)} seqs.")
+                        print(f"There are {len(Leftover)} seqs left.")
+                        print('\n')
+
+                        # Build ClusterDict to demarcate on map
+                        AnchorSeq = NewCluster.columns.tolist()[0]
+                        ClusterDict[AnchorSeq] = len(NewCluster)
+                    else:
+                        # Do not accept leftover clusters smaller than 4s
+                        RemovedSeqs = NewCluster.columns.tolist()
+                        print(f"Removed Leftover Seqs: {RemovedSeqs}")
                     
-            else:
-                if len(Leftover) > 0:
-                    RemovedSeqs = Leftover.columns.tolist()
-                    print(f"Removed Leftover Seqs: {RemovedSeqs}")
-            print(f"{StatName} cluster extraction complete.")
-            print('\n')
+                else:
+                    if len(Leftover) > 0:
+                        RemovedSeqs = Leftover.columns.tolist()
+                        print(f"Removed Leftover Seqs: {RemovedSeqs}")
+                print(f"{StatName} cluster extraction complete.")
+                print('\n')
 
-            print(f"Printing {StatName} clustermap for {TestName} alignment.")
-            print('\n')
+                print(f"Printing {StatName} clustermap for {TestName} alignment.")
+                print('\n')
             
-            # Mark all clusters on cg generated from before
-            cg = CgDict[StatName]
-            df = DFDict[StatName]
-            DemarcateCluster(cg, df, ClusterDict, f"{Outdir}.jpg")
-            print(f"Three clustermaps of all pairwise scores have been written to location of {PathToInputAln}.")
-            print('\n')
-            print("="*79)
-                    # Same behaviour as removing failing quartets
-                    # In case of small blocks @ upper left corner
+                # Mark all clusters on cg generated from before
+                DemarcateCluster(CurImage, CurDf, ClusterDict, f"{Outdir}.jpg")
+                print(f"Three clustermaps of all pairwise scores have been written to location of {PathToInputAln}.")
+                print('\n')
+                print("="*79)
+                # Same behaviour as removing failing quartets
+                # In case of small blocks @ upper left corner
         
         if not Partition:
             break
@@ -216,7 +222,11 @@ def main():
     
     parser.add_argument("-a", "--alpha", help="Significance value. If given a custom/arbitrary value (e.g. 0.05), SRHClusterMapper will not perform Sequential Bonferroni correction. By default behaviour, Sequential Bonferroni correction will be performed to seek a significance value lower than 0.05. i.e. Leaving this option to default  will result in more sequences passing the symmetry tests.", default=0, dest="a", type=float)
 
-    parser.add_argument("-b", "--benchmark", help="Benchmark / minimal purity of clusters in float representation. SRHClusterMapper will write out clusters where at least {benchmark*100} percent of all pairwise comparisons are passing pairs. Default off, that is, leaving this option to default will result in no clusters being written out.", default=0, dest="b", type=float)
+    parser.add_argument("-b", "--benchmark", nargs='*', help="Benchmark / minimal purity of clusters in float representation. SRHClusterMapper will write out clusters where at least {benchmark*100} percent of all pairwise comparisons are passing pairs. Default off, that is, leaving this option to default will result in no clusters being written out.", default=0, dest="b", type=float)
+    # This is the correct way to handle accepting multiple arguments.
+    # '*' == 0 or more.
+    # use: $ python whatever.py -b 1234 2345 3456 4567
+    # [1234, 2345, 3456, 4567]
     
     parser.set_defaults(func=run)
     

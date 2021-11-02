@@ -19,15 +19,8 @@ import numpy as np
 from scipy.stats import chi2
 import pandas as pd
 import seaborn as sns
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 import matplotlib
 matplotlib.use('Agg')
-
-# Matplotlib is not thread-safe: in fact
-# Threads must be set up the proper locks to serialize access to Matplotlib artists.
-# Agg (non-interactive backend) so that one can work on separate figures from separate threads
-# most GUI backends require being run from the main thread as well
 
 
 #========================================================================
@@ -110,10 +103,7 @@ def DivergenceMtx(x, y):
     In: (2 items) Strings where each string is seq in seq-pair.
     Out: (1 item) 4*4 numpy array representing divergence matrix, m.
     '''
-    
-    if x == y:
-        raise ValueError("Sorry. Caught duplicate sequences.")
-    
+
     x = np.array(list(x))
     y = np.array(list(y))
     a = np.array(list('ACGT'))
@@ -306,7 +296,7 @@ def pval(s, df):
 # DATA VISUALISATION
 # Functions for putting p-values into dataframe
 # Functions for correcting significance threshold alpha
-# Funcitons for building heatmap out of dataframe and threshold alpha
+# Funcitons for building clustergrid out of dataframe and threshold alpha
 
 
 def SequentialBonferroni(StatsList):
@@ -398,6 +388,7 @@ def MaskedCluster(Dataframe, Alpha):
 # EXTRACTING CLUSTERS
 # Functions for extracting out clusters
 # Functions for writing cluster seqs to new fasta
+# Functions for printing out clustergrid and demarcating clusters
 
 
 def ExtractCluster(AllClusterDF, Benchmark):
@@ -459,13 +450,18 @@ def ExtractCluster(AllClusterDF, Benchmark):
         
         CurrentRow = AllClusterDF.iloc[Latch, Latch+1:]
         NewFails = sum(CurrentRow)
+        
+        # Break if current seq is on its own more than 80% passing
+        if NewFails/len(CurrentRow) > 0.8:
+            break
+
         FailCount += NewFails       # Update FailCount
         AllComps += len(CurrentRow) # Update Cluster size
         #print(f"{-Latch-4} rows above starter quartet.")
         #print(f"{FailCount} fails and {AllComps} comps thus far.")
         #print(f"Max fail is {round((1-Benchmark)*AllComps)}.")
     
-    # Latest CurrentRow is the row that failied
+    # Latest CurrentRow is the row that failed
     # Nip off cluster before starting next iteration.
     ClusterDF = AllClusterDF.iloc[Latch+1: , Latch+1:]
     RemainingDF = AllClusterDF.iloc[:Latch+1, :Latch+1]
@@ -493,6 +489,28 @@ def WriteCluster(ClusterDF, SeqDict, WritePath):
     FastaOut.close()
 
 
+def DemarcateCluster(cg, df, ClusterDict, Filename):
+
+    '''
+    Demarcate clusters based on info in ClusterDict and save image.
+    
+    In: (4 items) cg previously generated.
+                  df (fullReord) previously generated
+                  ClusterDict containing anchor (upperleft cell) and size.
+                  Filename of png image.
+    Out: (1 item) Saves image.
+    '''
+    
+    ax = cg.ax_heatmap
+    for AnchorSeq, ClusterSize in ClusterDict.items():
+        # Identify upper left corner of box
+        AnchorPos = df.index.to_list().index(AnchorSeq)
+        ax.add_patch(matplotlib.patches.Rectangle((AnchorPos, AnchorPos), ClusterSize, ClusterSize, fill=False, edgecolor='yellow', lw=0.5))
+
+    cg.savefig(Filename, format="jpg", dpi=450)
+    ax.patches = []
+
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # For Use in Dev:
@@ -511,24 +529,3 @@ def WriteCluster(ClusterDF, SeqDict, WritePath):
 #
 #df, cg = MaskedCluster(AllBowkersMtx, BowkersAlpha)
 #ClusterDict = {">Galeruca daurica": 27}
-
-
-def DemarcateCluster(cg, df, ClusterDict, Filename):
-
-    '''
-    Demarcate clusters based on info in ClusterDict and save image.
-    
-    In: (4 items) cg previously generated.
-                  df (fullReord) previously generated
-                  ClusterDict containing anchor (upperleft cell) and size.
-                  Filename of png image.
-    Out: (1 item) Saves image.
-    '''
-    
-    ax = cg.ax_heatmap
-    for AnchorSeq, ClusterSize in ClusterDict.items():
-        # Identify upper left corner of box
-        AnchorPos = df.index.to_list().index(AnchorSeq)
-        ax.add_patch(mpatches.Rectangle((AnchorPos, AnchorPos), ClusterSize, ClusterSize, fill=False, edgecolor='yellow', lw=0.5))
-
-    cg.savefig(Filename, format="jpg", dpi=450)

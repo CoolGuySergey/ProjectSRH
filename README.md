@@ -1,6 +1,6 @@
 # SRHClusterMapper: an analytics tool for the detection of assumption violations prior to tree-building
 
-SRHClusterMapper is a web(**on-hold)/CLI tool made with the aim to clearly visualise and group sequences in an alignment into subsets where all within-subset seqeunce-pairs meet model-assumptions. The symmetry tests enable a divide-and-conquer protocol that saves resources comparing sequences that should not participate in the same phylogenetic analysis. 
+SRHClusterMapper is a web(**on-hold)/CLI tool made with the aim to clearly visualise and divide a given large alignment into subsets where all within-subset seqeunce-pairs meet common model-assumptions. The symmetry tests enable a divide-and-conquer protocol that saves resources comparing sequences that should not participate in the same phylogenetic analysis. 
 
 ![SRHClusterMapper screenshot](/images/gallery1.png)
 
@@ -22,7 +22,7 @@ There are two ways to use SRHClusterMapper:
 
 ![SRHClusterMapper screenshot](/images/gallery3.png)
 
-2. Run it from the command-line. For this only the contents of the `scripts/` directory are needed.
+2. Run it from the command-line. For this only the contents of the `scripts/` directory are needed. 
 ```
 python scripts/SRHClustermapper.py --input <in_file>
 ```
@@ -32,14 +32,14 @@ To switch on cluster extraction, with purity benchmark set to 80%: (i.e. within 
 python scripts/SRHClustermapper.py --input <in_file> --benchmark 0.8
 ```
 
-To switch off partitioning:
+To switch on codon partitioning:
 ```
-python scripts/SRHClustermapper.py --input <in_file> --partition 0
+python scripts/SRHClustermapper.py --input <in_file> --partition True --benchmark 0.8
 ```
 
-To switch off correction for multiple comparisons in case of alignments with few entreis:
+To switch off correction for multiple comparisons in case of alignments with few entries:
 ```
-python scripts/SRHClustermapper.py --input <in_file> --alpha 0.05
+python scripts/SRHClustermapper.py --input <in_file> --alpha 0.05 --benchmark 0.8
 ```
 
 Important:

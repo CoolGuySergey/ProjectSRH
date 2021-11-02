@@ -44,9 +44,6 @@ def test_Preprocessing():
 
 def test_SymmetryTests():
 
-    with pytest.raises(ValueError):
-        DivergenceMtx("AACCGGTT", "AACCGGTT")
-
     ExDict = ReadSeq("RealExample.fa")
     ExDivergenceMtx = DivergenceMtx(ExDict[">Seq1"], ExDict[">Seq2"])
     BowkersStat, BowkersDf = list(Bowkers(ExDivergenceMtx))
