@@ -104,7 +104,6 @@ def run(args):
         print('\n')
         
         AllStuartsMtx = Broadcast2Matrix(AllStuarts, SeqDict)
-        print('\n')
         print("All Stuarts/Marginal symmetry tests complete.")
         AllStuartsMtx.to_csv(f"{PathToInputAln}_{TestName}_AllStuarts.csv", index=False)
         print('\n')
@@ -124,7 +123,7 @@ def run(args):
         BowkersAllClusterDF, BowkersCg = MaskedCluster(AllBowkersMtx, BowkersAlpha)
         StuartsAllClusterDF, StuartsCg = MaskedCluster(AllStuartsMtx, StuartsAlpha)
         AbabnehsAllClusterDF, AbabnehsCg = MaskedCluster(AllAbabnehsMtx, AbabnehsAlpha)
-        
+
         print(f"All three tests complete for {TestName} alignment.")
         print('\n')
         print("="*79)
@@ -189,7 +188,35 @@ def run(args):
                 print("="*79)
                 # Same behaviour as removing failing quartets
                 # In case of small blocks @ upper left corner
-        
+
+        # Logging
+        with open(f'{PathToInputAln}_{TestName}.txt', 'w') as SummFile:
+            
+            SummFile.write('SUMMARY OF SRH ANALYSIS:\n')
+            SummFile.write('\n')
+            
+            SummFile.write(f'Sequences count: {len(BowkersAllClusterDF)}\n')
+            SummFile.write(f'Invalid-pairs count: {nancount}\n')
+            NumbOfSeqs = len(BowkersAllClusterDF)
+            allcomps = (((NumbOfSeqs ** 2) - NumbOfSeqs) * 0.5) - nancount
+            SummFile.write(f'Total number of valid-pairs: {int(allcomps)}\n')
+            SummFile.write('\n')
+
+            FailingBTally = 0.5 * (BowkersAllClusterDF.sum().sum() - NumbOfSeqs)
+            SummFile.write(f'Pairs that fail Bowkers: {int(FailingBTally)} ({FailingBTally/allcomps:.2f}%)\n')
+            SummFile.write(f'Significance Level: {BowkersAlpha}\n')
+            SummFile.write('\n')
+            
+            FailingSTally = 0.5 * (StuartsAllClusterDF.sum().sum() - NumbOfSeqs)
+            SummFile.write(f'Pairs that fail Stuarts: {int(FailingSTally)} ({FailingSTally/allcomps:.2f}%)\n')
+            SummFile.write(f'Significance Level: {StuartsAlpha}\n')
+            SummFile.write('\n')
+            
+            FailingATally = 0.5 * (AbabnehsAllClusterDF.sum().sum() - NumbOfSeqs)
+            SummFile.write(f'Pairs that fail Ababnehs: {int(FailingATally)} ({FailingATally/allcomps:.2f}%)\n')
+            SummFile.write(f'Significance Level: {AbabnehsAlpha}\n')
+            SummFile.write('\n')
+
         if not Partition:
             break
         # loop over single dict while keeping enumerate() for paritioning

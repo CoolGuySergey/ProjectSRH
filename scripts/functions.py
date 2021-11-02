@@ -463,7 +463,7 @@ def ExtractCluster(AllClusterDF, Benchmark):
     
     # Latest CurrentRow is the row that failed
     # Nip off cluster before starting next iteration.
-    ClusterDF = AllClusterDF.iloc[Latch+1: , Latch+1:]
+    ClusterDF = AllClusterDF.iloc[Latch+1:, Latch+1:]
     RemainingDF = AllClusterDF.iloc[:Latch+1, :Latch+1]
 
     return ClusterDF, RemainingDF
@@ -515,7 +515,7 @@ def DemarcateCluster(cg, df, ClusterDict, Filename):
 
 # For Use in Dev:
 
-#ExDict = ReadSeq("94Seq_Supermatrix.fasta")
+#open .ExDict = ReadSeq("94Seq_Supermatrix.fasta")
 #AllPairs = list(ite.combinations(ExDict.keys(), 2))
 #AllBowkers = []
 #for pair in AllPairs:
@@ -526,6 +526,6 @@ def DemarcateCluster(cg, df, ClusterDict, Filename):
 #    AllBowkers.append(BowkersPval)
 #AllBowkersMtx = Broadcast2Matrix(AllBowkers, ExDict)
 #BowkersAlpha = SequentialBonferroni(AllBowkers)
-#
+
 #df, cg = MaskedCluster(AllBowkersMtx, BowkersAlpha)
 #ClusterDict = {">Galeruca daurica": 27}
