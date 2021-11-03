@@ -100,17 +100,17 @@ def run(args):
         AllBowkersMtx = Broadcast2Matrix(AllBowkers, SeqDict)
         print('\n')
         print("All Bowkers/Maximal symmetry tests complete.")
-        AllBowkersMtx.to_csv(f"{PathToInputAln}_{TestName}_AllBowkers.csv", index=False)
+        AllBowkersMtx.to_csv(f"{PathToInputAln}_{TestName}_AllBowkers.csv")
         print('\n')
         
         AllStuartsMtx = Broadcast2Matrix(AllStuarts, SeqDict)
         print("All Stuarts/Marginal symmetry tests complete.")
-        AllStuartsMtx.to_csv(f"{PathToInputAln}_{TestName}_AllStuarts.csv", index=False)
+        AllStuartsMtx.to_csv(f"{PathToInputAln}_{TestName}_AllStuarts.csv")
         print('\n')
 
         AllAbabnehsMtx = Broadcast2Matrix(AllAbabnehs, SeqDict)
         print("All Ababneh/Internal symmetry tests complete.")
-        AllAbabnehsMtx.to_csv(f"{PathToInputAln}_{TestName}_AllAbabnehs.csv", index=False)
+        AllAbabnehsMtx.to_csv(f"{PathToInputAln}_{TestName}_AllAbabnehs.csv")
         print('\n')
 
         if Alpha == 0:
@@ -202,18 +202,18 @@ def run(args):
             SummFile.write(f'Total number of valid-pairs: {int(allcomps)}\n')
             SummFile.write('\n')
 
-            FailingBTally = 0.5 * (BowkersAllClusterDF.sum().sum() - NumbOfSeqs)
-            SummFile.write(f'Pairs that fail Bowkers: {int(FailingBTally)} ({FailingBTally/allcomps:.2f}%)\n')
+            FailingBTally = 0.5 * BowkersAllClusterDF.sum().sum()
+            SummFile.write(f'Pairs that fail Bowkers: {int(FailingBTally)} ({FailingBTally/allcomps*100:.2f}%)\n')
             SummFile.write(f'Significance Level: {BowkersAlpha}\n')
             SummFile.write('\n')
             
-            FailingSTally = 0.5 * (StuartsAllClusterDF.sum().sum() - NumbOfSeqs)
-            SummFile.write(f'Pairs that fail Stuarts: {int(FailingSTally)} ({FailingSTally/allcomps:.2f}%)\n')
+            FailingSTally = 0.5 * StuartsAllClusterDF.sum().sum()
+            SummFile.write(f'Pairs that fail Stuarts: {int(FailingSTally)} ({FailingSTally/allcomps*100:.2f}%)\n')
             SummFile.write(f'Significance Level: {StuartsAlpha}\n')
             SummFile.write('\n')
             
-            FailingATally = 0.5 * (AbabnehsAllClusterDF.sum().sum() - NumbOfSeqs)
-            SummFile.write(f'Pairs that fail Ababnehs: {int(FailingATally)} ({FailingATally/allcomps:.2f}%)\n')
+            FailingATally = 0.5 * AbabnehsAllClusterDF.sum().sum()
+            SummFile.write(f'Pairs that fail Ababnehs: {int(FailingATally)} ({FailingATally/allcomps*100:.2f}%)\n')
             SummFile.write(f'Significance Level: {AbabnehsAlpha}\n')
             SummFile.write('\n')
 

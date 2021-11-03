@@ -451,8 +451,8 @@ def ExtractCluster(AllClusterDF, Benchmark):
         CurrentRow = AllClusterDF.iloc[Latch, Latch+1:]
         NewFails = sum(CurrentRow)
         
-        # Break if current seq is on its own more than 80% passing
-        if NewFails/len(CurrentRow) > 0.8:
+        # Break if current seq is on its own more than 50% failing:
+        if len(CurrentRow > 10) and NewFails/len(CurrentRow) > 0.5:
             break
 
         FailCount += NewFails       # Update FailCount
@@ -515,7 +515,7 @@ def DemarcateCluster(cg, df, ClusterDict, Filename):
 
 # For Use in Dev:
 
-#open .ExDict = ReadSeq("94Seq_Supermatrix.fasta")
+#ExDict = ReadSeq("94Seq_Supermatrix.fasta")
 #AllPairs = list(ite.combinations(ExDict.keys(), 2))
 #AllBowkers = []
 #for pair in AllPairs:
@@ -524,8 +524,10 @@ def DemarcateCluster(cg, df, ClusterDict, Filename):
 #    BowkersStat, BowkersDf = list(Bowkers(m))
 #    BowkersPval = pval(BowkersStat, BowkersDf)
 #    AllBowkers.append(BowkersPval)
+  
 #AllBowkersMtx = Broadcast2Matrix(AllBowkers, ExDict)
 #BowkersAlpha = SequentialBonferroni(AllBowkers)
+#BowkersAllClusterDF, BowkersCg = MaskedCluster(AllBowkerssMtx, BowkersAlpha)
 
 #df, cg = MaskedCluster(AllBowkersMtx, BowkersAlpha)
 #ClusterDict = {">Galeruca daurica": 27}
