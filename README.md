@@ -1,4 +1,4 @@
-# SRHClusterMapper: an analytics tool for the detection of assumption violations prior to tree-building
+# SRHClusterMapper: an analytics tool subsetting large alignments based on assumption violations
 
 SRHClusterMapper is a web(**on-hold)/CLI tool made with the aim to clearly visualise and divide a given large alignment into subsets where all within-subset seqeunce-pairs meet common model-assumptions. The symmetry tests enable a divide-and-conquer protocol that saves resources comparing sequences that should not participate in the same phylogenetic analysis. 
 
@@ -42,10 +42,6 @@ To switch off correction for multiple comparisons in case of alignments with few
 python scripts/SRHClustermapper.py --input <in_file> --alpha 0.05 --benchmark 0.8
 ```
 
-Important:
-1. The three tests and the three conditions (SRH) do not map one-to-one (see screenshot of landing page above).
-2. Invalid pairs occur when a particular pair of sequences are identical or do not have overlapping non-gap sites in them (off-diagonals sum to 0 in divergence matrix m).
- 
 ----
 REQUIREMENTS
 ===
