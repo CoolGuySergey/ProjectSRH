@@ -311,10 +311,18 @@ def SequentialBonferroni(StatsList):
     StatsList = sorted(StatsList)
 
     Rank = 0
-    while StatsList[Rank] < (0.05 / (len(StatsList) - Rank)):
-        Rank += 1
 
-    return StatsList[Rank-1]
+    # Ababneh's artefact: will break while loop with 0th iteration
+    # smallest p-value already smaller than smallest corrected p-val
+    # will return StatsList[-1] in this case, which is the largest p-value (near 1.0)
+    # and subsequently all other p-values are smaller than this
+    # and count as significant / true / "fail"
+    if not StatsList[0] < (0.05 / (len(StatsList))):
+        return 0.05
+    else:
+        while StatsList[Rank] < (0.05 / (len(StatsList) - Rank)):
+            Rank += 1
+        return StatsList[Rank-1]
 
 
 def Broadcast2Matrix(StatsList, SeqDict):
