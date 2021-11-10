@@ -394,7 +394,7 @@ def MaskedCluster(Dataframe, Alpha):
 def ExtractCluster(AllClusterDF, Benchmark):
 
     '''
-    Write out bottom right cluster to CSV file.
+    Write out bottom right cluster to fasta file.
 
     In: (2 items) Reordered dataframe, benchmark as float.
     Out: (2 item) Dataframe containing bottom right cluster.
