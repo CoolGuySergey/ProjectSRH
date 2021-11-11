@@ -312,13 +312,15 @@ def SequentialBonferroni(StatsList):
 
     Rank = 0
 
-    # Ababneh's artefact: will break while loop with 0th iteration
+    # Ababneh's artefact log: will break while loop with 0th iteration
     # smallest p-value already smaller than smallest corrected p-val
     # will return StatsList[-1] in this case, which is the largest p-value (near 1.0)
     # and subsequently all other p-values are smaller than this
     # and count as significant / true / "fail"
+
+    # Currently fixed: return smallets adjusted p-value and exit. No significance.
     if not StatsList[0] < (0.05 / (len(StatsList))):
-        return 0.05
+        return (0.05 / (len(StatsList)))
     else:
         while StatsList[Rank] < (0.05 / (len(StatsList) - Rank)):
             Rank += 1
